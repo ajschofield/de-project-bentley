@@ -67,7 +67,7 @@ Please follow the conventional commits specification:
 
 <optional body>
 
-[optonal footer(s)]
+[optional footer(s)]
 ```
 
 ### Types
