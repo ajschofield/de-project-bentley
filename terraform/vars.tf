@@ -23,6 +23,16 @@ variable "transform_lambda_name" {
     default = "transform-lambda" 
 }
 
+variable "load_lambda_name" {
+    type = string
+    default = "load-lambda" 
+}
+
+variable "project_name" {
+    type = string
+    default = "Terrific-Totes"
+}
+
 data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
