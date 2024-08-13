@@ -23,6 +23,9 @@ resource "aws_iam_role" "bentley_service_role" {
 }
 
 # lambda setup
+resource "aws_iam_role" "lambda_role" {
+  assume_role_policy = data.aws_iam_policy_document.bentley_service_role.json
+}
 
 
 # s3 setup
@@ -44,14 +47,14 @@ data "aws_iam_policy_document" "s3_data_policy_doc" {
 }
 
 # write policy
-resource "aws_iam_policy" "s3_policy" {
+resource "aws_iam_policy" "s3_write_policy" {
     policy = data.aws_iam_policy_document.s3_data_policy_doc.json
 }
 
 # attach policy to role
 resource "aws_iam_role_policy_attachment" "s3_policy_attachment" {
-    role = aws_iam_role.bentley_service_role.name
-    policy_arn = aws_iam_policy.s3_policy.arn
+    role = aws_iam_role.lambda_role.name
+    policy_arn = aws_iam_policy.s3_write_policy.arn
 }
 
 # lambda setup
