@@ -1,0 +1,34 @@
+name: terraform-quality-checks
+
+on:
+    push:
+        branches: [development]
+        paths:
+            - 'terraform/**.tf'
+            - 'terraform/**.tfvars'
+    pull_request:
+        branches: [development, staging]
+        paths:
+            - 'terraform/**.tf'
+            - 'terraform/**.tfvars'
+jobs:
+    terraform-validation:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v1
+              with:
+                  terraform_version: latest # Using the latest version, but not sure if it's the best practice
+            - name: Format
+              run: terraform fmt -check -recursive
+            - name: Init
+              run: terraform init -backend=false
+            - name: Validate
+              run: terraform validate
+            - name: Setup TFLint
+              uses: terraform-linters/setup-tflint@v2
+              with:
+                  tflint_version: latest
+            - name: Run TFLint
+              run: tflint -f compact
