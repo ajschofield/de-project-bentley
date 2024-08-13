@@ -1,0 +1,33 @@
+name: python-quality-checks
+
+on:
+    push:
+        branches: [development]
+    pull_request:
+        branches: [development, staging]
+
+jobs:
+    quality-checks:
+        runs-on: ubuntu-latest
+        steps:
+            - uses : actions/checkout@v2
+            - name : Setup
+              uses : actions/setup-python@v2
+              with:
+                python-version: 3.11
+            - name : Dependencies
+              run: |
+                python -m pip install --upgrade pip
+                pip install flake8 pylint black bandit safety
+            - name : Linting
+              run: |
+                flake8 .
+                find . -name "*.py" | xargs pylint
+            - name : Formatting
+              run: |
+                black --check .
+            - name: Security
+              run: |
+                bandit -r .
+                safety check
+                
