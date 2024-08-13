@@ -22,17 +22,12 @@ resource "aws_iam_role" "bentley_service_role" {
     EOF
 }
 
+# lambda setup
+
+
 # s3 setup
-# allows to list and retrieve s3 buckets, and allows retention/tagging/access control settings
+# allows allows retention/tagging/access control settings
 data "aws_iam_policy_document" "s3_data_policy_doc" {
-  statement {
-    actions = [
-      "s3:ListAllMyBuckets",
-      "s3:GetBucketLocation"
-      ]
-    resources = ["arn:aws:s3:::*"]
-  }
-  
   statement {
     actions = [
       "s3:PutObject",
@@ -41,8 +36,22 @@ data "aws_iam_policy_document" "s3_data_policy_doc" {
       "s3:PutObjectAcl"
     ]
     resources = [
-      "${aws_s3_bucket.data_bucket.arn}/*",
-      "${aws_s3_bucket.code_bucket.arn}/*"
+      "${aws_s3_bucket.extract_bucket.arn}/*",
+      "${aws_s3_bucket.transform_bucket.arn}/*",
+      "${aws_s3_bucket.lambda_bucket.arn}/*",
     ]
   }
 }
+
+# write policy
+resource "aws_iam_policy" "s3_policy" {
+    policy = data.aws_iam_policy_document.s3_data_policy_doc.json
+}
+
+# attach policy to role
+resource "aws_iam_role_policy_attachment" "s3_policy_attachment" {
+    role = aws_iam_role.bentley_service_role.name
+    policy_arn = aws_iam_policy.s3_policy.arn
+}
+
+# lambda setup
