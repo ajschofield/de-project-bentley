@@ -22,7 +22,7 @@ jobs:
             - name : Linting
               run: |
                 flake8 .
-                pylint **/*.py
+                find . -name "*.py" | xargs pylint
             - name : Formatting
               run: |
                 black --check .
