@@ -4,7 +4,7 @@
 ########################################################################
 
 # DEFINE MULTI-SERVICE ROLE (lambda, s3, cloudwatch, events)
-resource "aws_iam_role" "multi_service_role" {
+resource "aws_iam_role" "bentley_multi_service_role" {
   name = "multi_service_role"
 
   assume_role_policy = jsonencode({
@@ -61,6 +61,61 @@ resource "aws_iam_policy" "s3_access_policy" {
   )
 }
 
+########################################################################
+# LAMBDA SETUP
+# Description: Allows Lambda permission to write to Cloudwatch logs
+########################################################################
+
+resource "aws_iam_policy" "lambda_execution_policy" {
+  name = "lambda_execution_policy"
+  path = "/"
+  description = "IAM policy for Lambda execution"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+        {
+        Effect = "Allow"
+        Action = [
+          "lambda:InvokeFunction",
+          "lambda:GetFunction"
+        ]
+        Resource = "*"
+        }
+      ]
+    }
+  )
+}
+
+########################################################################
+# CLOUDWATCH SETUP
+# Description: Give permission for Lambda to write to CloudWatch logs
+########################################################################
+
+data "aws_iam_policy_document" "cw_document" {
+  statement {
+    actions = ["logs:CreateLogGroup"]
+    resources = [
+      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+      ]
+  }
+
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup",
+      "logs:PutLogEvents"
+      ]
+      resources = [
+        "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*"
+      ]
+  }
+}
+
+########################################################################
+# POLICY WRITE & ATTACH
+########################################################################
+
 # S3 WRITE POLICY
 resource "aws_iam_policy" "s3_write_policy" {
   policy = data.aws_iam_policy_document.s3_data_policy_doc.json
@@ -70,16 +125,4 @@ resource "aws_iam_policy" "s3_write_policy" {
 resource "aws_iam_role_policy_attachment" "lambda_s3_policy_attachment" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.s3_write_policy.arn
-}
-
-########################################################################
-# LAMBDA SETUP
-# Description: Allows Lambda permission to write to Cloudwatch logs
-########################################################################
-
-
-
-# Uses Iam policy document to assume role for lambda functions
-resource "aws_iam_role" "lambda_role" {
-  assume_role_policy = data.aws_iam_policy_document.bentley_service_role.json
 }
