@@ -4,7 +4,7 @@
 ########################################################################
 
 # DEFINE MULTI-SERVICE ROLE (lambda, s3, cloudwatch, events)
-resource "aws_iam_role" "bentley_multi_service_role" {
+resource "aws_iam_role" "multi_service_role" {
   name = "multi_service_role"
 
   assume_role_policy = jsonencode({
@@ -16,7 +16,7 @@ resource "aws_iam_role" "bentley_multi_service_role" {
         Principal = {
           Service = [
             "lambda.amazonaws.com",
-            "states.amazonaws.com",
+            "cloudwatch.amazonaws.com",
             "events.amazonaws.com",
             "s3.amazonaws.com"
           ]
@@ -27,7 +27,6 @@ resource "aws_iam_role" "bentley_multi_service_role" {
 }
 
 
-
 ########################################################################
 # S3 SETUP                                                        
 # Description: allows allows retention/tagging/access control settings
@@ -35,31 +34,22 @@ resource "aws_iam_role" "bentley_multi_service_role" {
 ########################################################################
 
 # S3 DEFINE POLICY
-resource "aws_iam_policy" "s3_access_policy" {
-  name        = "s3_access_policy"
-  path        = "/"
-  description = "IAM policy for S3 access"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:ListBucket"
-        ]
-        resources = [
-          "${aws_s3_bucket.extract_bucket.arn}/*",
-          "${aws_s3_bucket.transform_bucket.arn}/*",
-          "${aws_s3_bucket.lambda_bucket.arn}/*"
-          ]
-        }
-      ] 
-    }
-  )
+data "aws_iam_policy_document" "s3_data_policy_doc" {
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:PutObjectRetention",
+      "s3:PutObjectTagging",
+      "s3:PutObjectAcl"
+    ]
+    resources = [
+      "${aws_s3_bucket.extract_bucket.arn}/*",
+      "${aws_s3_bucket.transform_bucket.arn}/*",
+      "${aws_s3_bucket.lambda_code_bucket.arn}/*",
+    ]
+  }
 }
+
 
 ########################################################################
 # LAMBDA SETUP
@@ -112,6 +102,11 @@ data "aws_iam_policy_document" "cw_document" {
   }
 }
 
+resource "aws_iam_policy" "cw_policy" {
+  name = "cw_policy"
+  policy = data.aws_iam_policy_document.cw_document.json
+}
+
 ########################################################################
 # POLICY WRITE & ATTACH
 ########################################################################
@@ -123,6 +118,15 @@ resource "aws_iam_policy" "s3_write_policy" {
 
 # S3 ATTACH POLICY
 resource "aws_iam_role_policy_attachment" "lambda_s3_policy_attachment" {
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = aws_iam_policy.s3_write_policy.arn
+  for_each = toset([
+    aws_iam_policy.s3_write_policy.arn,
+    aws_iam_policy.lambda_execution_policy.arn,
+    aws_iam_policy.cw_policy.arn
+  ])
+  role       = aws_iam_role.multi_service_role.name
+  policy_arn = each.value
 }
+
+################
+# RDS POLICIES #
+################

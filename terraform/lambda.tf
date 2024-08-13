@@ -7,9 +7,9 @@ data "archive_file" "extract_lambda_zip" {
 
 resource "aws_lambda_function" "extract_lambda" {
     function_name = "${var.extract_lambda_name}"
-    s3_bucket = aws_s3_bucket.lambda_bucket.bucket
+    s3_bucket = aws_s3_bucket.lambda_code_bucket.bucket
     s3_key = "extract_lambda/extract_function.zip"
-    role = aws_iam_role.PLACEHOLDER_extract_lambda_role.arn # << lambda role placehodler
+    role = aws_iam_role.multi_service_role.arn #<< lambda role placehodler
     handler = "extract_lambda.lambda_handler" # << check that the function is called lambda handler
     runtime = "python3.11"
     environment {
@@ -36,9 +36,9 @@ data "archive_file" "transform_lambda_zip" {
 
 resource "aws_lambda_function" "transform_lambda" {
     function_name = "${var.transform_lambda_name}"
-    s3_bucket = aws_s3_bucket.lambda_bucket.bucket
+    s3_bucket = aws_s3_bucket.lambda_code_bucket.bucket
     s3_key = "transform_lambda/transform_function.zip"
-    role = aws_iam_role.PLACEHOLDER_transform_lambda_role.arn # << lambda role placehodler
+    role = aws_iam_role.multi_service_role.arn # << lambda role placehodler
     handler = "transform_lambda.lambda_handler" # << check that the function is called lambda handler
     runtime = "python3.11"
     environment {
@@ -55,7 +55,6 @@ resource "aws_lambda_permission" "allow_to_write_to_s3_transform_bucket" {
   source_arn = aws_s3_bucket.transform_bucket.arn
 }
 
-
 ### LOAD LAMBDA SET UP
 data "archive_file" "load_lambda_zip" {
   type        = "zip"
@@ -65,9 +64,9 @@ data "archive_file" "load_lambda_zip" {
 
 resource "aws_lambda_function" "load_lambda" {
     function_name = "${var.load_lambda_name}"
-    s3_bucket = aws_s3_bucket.lambda_bucket.bucket
+    s3_bucket = aws_s3_bucket.lambda_code_bucket.bucket
     s3_key = "load_lambda/load_function.zip"
-    role = aws_iam_role.PLACEHOLDER_load_lambda_role.arn # << lambda role placehodler
+    role = aws_iam_role.multi_service_role.arn # << lambda role placehodler
     handler = "load_lambda.lambda_handler" # << check that the function is called lambda handler
     runtime = "python3.11"
 }

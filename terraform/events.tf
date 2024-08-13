@@ -50,7 +50,7 @@ resource "aws_s3_bucket_notification" "extract_bucket_notification" {
 
 ######
 
-resource "aws_lambda_permission" "allow_s3_transfrom_bucket" {
+resource "aws_lambda_permission" "allow_s3_transform_bucket" {
   statement_id  = "AllowS3InvokeLambdaTransform"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.transform_lambda.function_name #replaced lambda name placeholder
@@ -67,5 +67,5 @@ resource "aws_s3_bucket_notification" "transform_bucket_notification" {
     lambda_function_arn = aws_lambda_function.transform_lambda.arn #replaced lambda name placeholder
   }
 
-  depends_on = [aws_lambda_permission.allow_s3_transform]
+  depends_on = [aws_lambda_permission.allow_s3_transform_bucket]
 }
