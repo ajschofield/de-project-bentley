@@ -8,6 +8,11 @@ variable "s3_transform_bucket_name" {
     default = "transform-bucket"
 }
 
+variable "s3_code_bucket_name" {
+    type = string
+    default = "lambda-bucket"
+}
+
 variable "extract_lambda_name" {
     type = string
     default = "extract-lambda"
