@@ -49,4 +49,24 @@ resource "aws_s3_bucket_notification" "extract_bucket_notification" {
   depends_on = [aws_lambda_permission.allow_s3_ingestion]
 }
 
-# need to duplicate and replace "2" with "3"
+######
+
+resource "aws_lambda_permission" "allow_s3_transfrom_bucket" {
+  statement_id  = "AllowS3InvokeLambdaTransform"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_transform.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.transform.arn
+}
+
+
+resource "aws_s3_bucket_notification" "transform_bucket_notification" {
+  bucket = aws_s3_bucket.transform.id
+
+  lambda_function {
+    events             = ["s3:ObjectCreated:*"]  
+    lambda_function_arn = aws_lambda_function.lambda_transform.arn
+  }
+
+  depends_on = [aws_lambda_permission.allow_s3_transform]
+}
