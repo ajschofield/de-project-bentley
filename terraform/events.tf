@@ -8,7 +8,7 @@ resource "aws_cloudwatch_event_target" "extract_lambda_cw_event" {
 resource "aws_cloudwatch_event_rule" "lambda_trigger" {
   name                = "lambda-scheduled-trigger"
   description         = "Schedule to trigger the Lambda function"
-  schedule_expression = "rate(30 minutes)"
+  schedule_expression = "rate(30 seconds)"
   force_destroy = true
   # depends_on = [ 
   #   aws_cloudwatch_event_target.extract_lambda_cw_event]
