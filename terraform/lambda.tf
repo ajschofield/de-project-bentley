@@ -8,7 +8,7 @@ data "archive_file" "extract_lambda_zip" {
 resource "aws_lambda_function" "extract_lambda" {
     function_name = "${var.extract_lambda_name}"
     s3_bucket = aws_s3_bucket.lambda_code_bucket.bucket
-    s3_key = "extract_lambda/extract_function.zip"
+    s3_key = "extract-lambda/extract_function.zip"
     role = aws_iam_role.multi_service_role.arn #<< lambda role placehodler
     handler = "extract_lambda.lambda_handler" # << check that the function is called lambda handler
     runtime = "python3.11"
@@ -37,7 +37,7 @@ data "archive_file" "transform_lambda_zip" {
 resource "aws_lambda_function" "transform_lambda" {
     function_name = "${var.transform_lambda_name}"
     s3_bucket = aws_s3_bucket.lambda_code_bucket.bucket
-    s3_key = "transform_lambda/transform_function.zip"
+    s3_key = "transform-lambda/transform_function.zip"
     role = aws_iam_role.multi_service_role.arn # << lambda role placehodler
     handler = "transform_lambda.lambda_handler" # << check that the function is called lambda handler
     runtime = "python3.11"
@@ -65,7 +65,7 @@ data "archive_file" "load_lambda_zip" {
 resource "aws_lambda_function" "load_lambda" {
     function_name = "${var.load_lambda_name}"
     s3_bucket = aws_s3_bucket.lambda_code_bucket.bucket
-    s3_key = "load_lambda/load_function.zip"
+    s3_key = "load-lambda/load_function.zip"
     role = aws_iam_role.multi_service_role.arn # << lambda role placehodler
     handler = "load_lambda.lambda_handler" # << check that the function is called lambda handler
     runtime = "python3.11"
