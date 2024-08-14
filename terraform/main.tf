@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "bentley-secrets"
+    bucket = "bentley-project-secrets"
     key = "bentley-project/terraform.tfstate"
     region = "eu-west-2"
   }
