@@ -1,9 +1,23 @@
 import pytest
 import boto3
 from moto import mock_aws
-from src.extract_lambda import list_existing_s3_files #process_and_upload_tables
+from unittest.mock import patch
+from unittest import TestCase
+from src.extract_lambda import list_existing_s3_files, connect_to_database, DBConnectionException #process_and_upload_tables
 import os 
 import logging
+
+@pytest.fixture(scope='class')
+def mock_config():
+    env_vars = {
+        "host": "abc",
+        "port": "5432",
+        "user": "def",
+        "password": "password",
+        "database": "db",
+    }
+    with patch("src.extract_lambda.get_config", return_value=env_vars) as mock_config:
+        yield mock_config
 
 
 @pytest.fixture(scope='class')
@@ -19,7 +33,7 @@ def s3_client(aws_credentials):
     with mock_aws():
         yield boto3.client('s3')
 
-class TestListExistings3Files():
+class TestListExistings3Files:
     def test_error_if_no_bucket(self, s3_client, caplog):
 
         logger = logging.getLogger()
@@ -47,3 +61,23 @@ class TestListExistings3Files():
         result = list_existing_s3_files(client=s3_client)
 
         assert list(result.values()) == ['This is a test file.'] 
+
+class TestConnectToDatabase:
+    def test_connect_to_database(mock_conn, mock_config):
+        with patch("src.extract_lambda.Connection", autospec=True) as mock_conn:  
+            connect_to_database()
+            mock_conn.assert_called_with(
+            host="abc", user="def", port="5432", password="password", database="db"
+            )
+
+    def test_database_error(self, mock_config):
+        with pytest.raises(DBConnectionException):
+            connect_to_database()
+
+    def test_logs_interface_error(self, caplog):
+        logger = logging.getLogger()
+        logger.info('Testing now.')
+        caplog.set_level(logging.ERROR)
+        with pytest.raises(DBConnectionException):
+            connect_to_database()
+        assert 'Interface error' in caplog.text

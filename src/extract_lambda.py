@@ -1,6 +1,5 @@
 from pg8000.native import Connection, DatabaseError, InterfaceError
-from dotenv import load_dotenv
-import os
+from dotenv import dotenv_values
 import boto3
 import csv
 from botocore.exceptions import ClientError
@@ -9,16 +8,15 @@ import json
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-load_dotenv()
 
+class DBConnectionException(Exception):
+    """Wraps pg8000.native Error or DatabaseError."""
 
-database = os.getenv('database')
-user = os.getenv('user')
-password = os.getenv('password')
-host = os.getenv('host')
-port = os.getenv('port')
-
-
+    def __init__(self, e):
+        """Initialise with provided error message."""
+        self.message = str(e)
+        super().__init__(self.message)
+        
 def lambda_handler(event, context):
     """This lambda function connects to the Totesys database, lists the contents of the ingestion bucket,
        and converts all tables to CSV and if any of those tables do not exist in, or are different to the ones in s3, it uploads them
@@ -53,8 +51,19 @@ def lambda_handler(event, context):
         if db:
             db.close()
 
-def connect_to_database():
+def get_config(path: str = ".env") -> dict:
+    return dotenv_values(path)
+
+
+def connect_to_database() -> Connection:
     try:
+        config = get_config()
+        host = config["host"]
+        port = config["port"]
+        user = config["user"]
+        password = config["password"]
+        database = config["database"]
+
         return Connection(
             database=database,
             user=user,
@@ -62,12 +71,13 @@ def connect_to_database():
             host=host,
             port=port
         )
-    except DatabaseError as e:
-        logger.error(f'Database error: {e}')
-        raise
+    # except DatabaseError as e:
+    #     logger.error(f'Database error: {e}')
+    #     raise 
     except InterfaceError as i:
         logger.error(f'Interface error: {i}')
-        raise
+        raise DBConnectionException("Failed to connect to database")
+
 
 
 def list_existing_s3_files(bucket_name='extract_bucket', client=boto3.client('s3')):
