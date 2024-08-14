@@ -1,7 +1,17 @@
+resource "aws_cloudwatch_event_target" "extract_lambda_cw_event" {
+  rule      = aws_cloudwatch_event_rule.lambda_trigger.name
+  target_id = "TargetFunctionV1"
+  arn       = aws_lambda_function.extract_lambda.arn #replaced lambda name placeholder
+  force_destroy = true
+}
+
 resource "aws_cloudwatch_event_rule" "lambda_trigger" {
   name                = "lambda-scheduled-trigger"
   description         = "Schedule to trigger the Lambda function"
   schedule_expression = "rate(30 minutes)"
+  force_destroy = true
+  # depends_on = [ 
+  #   aws_cloudwatch_event_target.extract_lambda_cw_event]
   
 #   event_pattern = jsonencode({
 #     detail-type = 
@@ -9,14 +19,6 @@ resource "aws_cloudwatch_event_rule" "lambda_trigger" {
 #     ]
 #   })
 }
-
-
-resource "aws_cloudwatch_event_target" "extract_lambda_cw_event" {
-  rule      = aws_cloudwatch_event_rule.lambda_trigger.name
-  target_id = "TargetFunctionV1"
-  arn       = aws_lambda_function.extract_lambda.arn #replaced lambda name placeholder
-}
-
 
 resource "aws_lambda_permission" "allow_eventbridge" {
   statement_id  = "AllowExecutionFromEventBridge"

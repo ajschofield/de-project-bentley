@@ -32,20 +32,20 @@ resource "aws_s3_bucket" "lambda_code_bucket" {
     bucket_prefix = "${var.s3_code_bucket_name}-"
 }
 
-resource "aws_s3_object" "extract_lambda_code" {
-  bucket = aws_s3_bucket.lambda_code_bucket.bucket
-  key = "${var.extract_lambda_name}/extract_function.zip"
-  source = "${path.module}/../extract_function.zip"
-} # << can't figure out how this is being used but we seem to need it
+# resource "aws_s3_object" "extract_lambda_code" {
+#   bucket = aws_s3_bucket.lambda_code_bucket.bucket
+#   key = "${var.extract_lambda_name}/extract_function.zip"
+#   source = "${path.module}/../extract_function.zip"
+# } # << can't figure out how this is being used but we seem to need it
 
-resource "aws_s3_object" "transform_lambda_code" {
-  bucket = aws_s3_bucket.lambda_code_bucket.bucket
-  key = "${var.transform_lambda_name}/transform_function.zip"
-  source = "${path.module}/../transform_function.zip"
-} # << can't figure out how this is being used but we seem to need it
+# resource "aws_s3_object" "transform_lambda_code" {
+#   bucket = aws_s3_bucket.lambda_code_bucket.bucket
+#   key = "${var.transform_lambda_name}/transform_function.zip"
+#   source = "${path.module}/../transform_function.zip"
+# } # << can't figure out how this is being used but we seem to need it
 
-resource "aws_s3_object" "load_lambda_code" {
-  bucket = aws_s3_bucket.lambda_code_bucket.bucket
-  key = "${var.load_lambda_name}/load_function.zip"
-  source = "${path.module}/../load_function.zip"
-}
+# resource "aws_s3_object" "load_lambda_code" {
+#   bucket = aws_s3_bucket.lambda_code_bucket.bucket
+#   key = "${var.load_lambda_name}/load_function.zip"
+#   source = "${path.module}/../load_function.zip"
+# }
