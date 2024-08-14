@@ -16,9 +16,7 @@ resource "aws_iam_role" "multi_service_role" {
         Principal = {
           Service = [
             "lambda.amazonaws.com",
-            "cloudwatch.amazonaws.com",
-            "events.amazonaws.com",
-            "s3.amazonaws.com"
+            "scheduler.amazonaws.com"
           ]
         }
       }
@@ -57,22 +55,22 @@ data "aws_iam_policy_document" "s3_data_policy_doc" {
 ########################################################################
 
 resource "aws_iam_policy" "lambda_execution_policy" {
-  name = "lambda_execution_policy"
-  path = "/"
+  name        = "lambda_execution_policy"
+  path        = "/"
   description = "IAM policy for Lambda execution"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-        {
+      {
         Effect = "Allow"
         Action = [
           "lambda:InvokeFunction",
           "lambda:GetFunction"
         ]
         Resource = "*"
-        }
-      ]
+      }
+    ]
     }
   )
 }
@@ -87,7 +85,7 @@ data "aws_iam_policy_document" "cw_document" {
     actions = ["logs:CreateLogGroup"]
     resources = [
       "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
-      ]
+    ]
   }
 
   statement {
@@ -95,15 +93,15 @@ data "aws_iam_policy_document" "cw_document" {
       "logs:CreateLogStream",
       "logs:CreateLogGroup",
       "logs:PutLogEvents"
-      ]
-      resources = [
-        "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*"
-      ]
+    ]
+    resources = [
+      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*"
+    ]
   }
 }
 
 resource "aws_iam_policy" "cw_policy" {
-  name = "cw_policy"
+  name   = "cw_policy"
   policy = data.aws_iam_policy_document.cw_document.json
 }
 
@@ -128,20 +126,48 @@ resource "aws_iam_policy" "s3_write_policy" {
 # }
 
 resource "aws_iam_role_policy_attachment" "s3_attachment" {
-  role = aws_iam_role.multi_service_role.name
+  role       = aws_iam_role.multi_service_role.name
   policy_arn = aws_iam_policy.s3_write_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_attachment" {
-  role = aws_iam_role.multi_service_role.name
+  role       = aws_iam_role.multi_service_role.name
   policy_arn = aws_iam_policy.lambda_execution_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "cw_attachment" {
-  role = aws_iam_role.multi_service_role.name
+  role       = aws_iam_role.multi_service_role.name
   policy_arn = aws_iam_policy.cw_policy.arn
 }
 
 ################
 # RDS POLICIES #
 ################
+
+###################
+# EVENTS POLICIES #
+###################
+
+data "aws_iam_policy_document" "cloudwatch_events_policy" {
+  statement {
+    actions = [
+      "events:PutRule",
+      "events:PutTargets",
+      "events:RemoveTargets",
+      "events:DeleteRule",
+      "events:PutEvents"
+    ]
+    resources = ["*"]
+    effect    = "Allow"
+  }
+}
+
+resource "aws_iam_policy" "cloudwatch_events_policy" {
+  name   = "cloudwatch_events_policy"
+  policy = data.aws_iam_policy_document.cloudwatch_events_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch_events_attachment" {
+  role       = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.cloudwatch_events_policy.arn
+}
