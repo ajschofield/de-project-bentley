@@ -18,6 +18,7 @@ password = os.getenv('password')
 host = os.getenv('host')
 port = os.getenv('port')
 
+
 def lambda_handler(event, context):
     """This lambda function connects to the Totesys database, lists the contents of the ingestion bucket,
        and converts all tables to CSV and if any of those tables do not exist in, or are different to the ones in s3, it uploads them
@@ -69,27 +70,28 @@ def connect_to_database():
         raise
 
 
-
-def list_existing_s3_files():
+def list_existing_s3_files(bucket_name='extract_bucket', client=boto3.client('s3')):
     """Creates a dictionary and populates it with the 
        results of listing the contents of the s3 bucket, then
        returns the populated dictionary
     """
-    client = boto3.client('s3')
+    
     existing_files = {}
     
     try:
-        response = client.list_objects_v2(Bucket=ingestion_bucket)
+        response = client.list_objects_v2(Bucket='extract_bucket')
         
         if 'Contents' in response:
             for obj in response['Contents']:
                 s3_key = obj['Key']
                 try:
-                    file_obj = client.get_object(Bucket=ingestion_bucket, Key=s3_key)
+                    file_obj = client.get_object(Bucket=bucket_name, Key=s3_key)
                     file_content = file_obj['Body'].read().decode('utf-8')
                     existing_files[s3_key] = file_content
                 except ClientError as e:
                     logger.error(f'Error retrieving S3 object {s3_key}: {e}')
+        else:
+            logger.error('The bucket is empty')
     
     except ClientError as e:
         logger.error(f'Error listing S3 objects: {e}')
