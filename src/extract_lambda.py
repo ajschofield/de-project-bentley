@@ -5,6 +5,7 @@ import csv
 from botocore.exceptions import ClientError
 import logging
 import json
+from datetime import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -16,7 +17,7 @@ class DBConnectionException(Exception):
         """Initialise with provided error message."""
         self.message = str(e)
         super().__init__(self.message)
-        
+
 def lambda_handler(event, context):
     """This lambda function connects to the Totesys database, lists the contents of the ingestion bucket,
        and converts all tables to CSV and if any of those tables do not exist in, or are different to the ones in s3, it uploads them
@@ -71,9 +72,6 @@ def connect_to_database() -> Connection:
             host=host,
             port=port
         )
-    # except DatabaseError as e:
-    #     logger.error(f'Database error: {e}')
-    #     raise 
     except InterfaceError as i:
         logger.error(f'Interface error: {i}')
         raise DBConnectionException("Failed to connect to database")
@@ -110,14 +108,14 @@ def list_existing_s3_files(bucket_name='extract_bucket', client=boto3.client('s3
 
 
 
-def process_and_upload_tables(db, existing_files):
+def process_and_upload_tables(db, existing_files, client=boto3.client('s3')):
     """Creates a list of the tables from a database query and 
        then selects everything from each table in individual queries
        it then writes each table to CSV files and compares with the item 
-       in the existing_files dictionary with the same name. If it finds sny changes
+       in the existing_files dictionary with the same name. If it finds any changes
        to files, or new tables/files it uploads them to the s3 bucket
     """
-    client = boto3.client('s3')
+    
     tables = db.run("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
     
     for table in tables:
@@ -132,13 +130,13 @@ def process_and_upload_tables(db, existing_files):
             writer.writerow(column_names)
             writer.writerows(rows)
         
-        s3_key = f"{table_name}/latest.csv"
+        s3_key = f"{table_name}/{datetime.today().year}/{datetime.today().month}/{datetime.today().day}/{table_name}_{datetime.now().strftime('%H:%M:%S')}.csv"
         new_csv_content = open(csv_file_path, "r").read()
         
 
         if s3_key not in existing_files or existing_files[s3_key] != new_csv_content:
             try:
-                client.upload_file(csv_file_path, ingestion_bucket, s3_key)
+                client.upload_file(csv_file_path, 'extract_bucket', s3_key)
                 logger.info(f"Uploaded {s3_key} to S3.")
             except ClientError as e:
                 logger.error(f'Error uploading to S3: {e}')
