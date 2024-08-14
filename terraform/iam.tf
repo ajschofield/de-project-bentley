@@ -117,14 +117,29 @@ resource "aws_iam_policy" "s3_write_policy" {
 }
 
 # S3 ATTACH POLICY
-resource "aws_iam_role_policy_attachment" "lambda_s3_policy_attachment" {
-  for_each = toset([
-    aws_iam_policy.s3_write_policy.arn,
-    aws_iam_policy.lambda_execution_policy.arn,
-    aws_iam_policy.cw_policy.arn
-  ])
-  role       = aws_iam_role.multi_service_role.name
-  policy_arn = each.value
+# resource "aws_iam_role_policy_attachment" "lambda_s3_policy_attachment" {
+#   for_each = toset([
+#     aws_iam_policy.s3_write_policy.arn,
+#     aws_iam_policy.lambda_execution_policy.arn,
+#     aws_iam_policy.cw_policy.arn
+#   ])
+#   role       = aws_iam_role.multi_service_role.name
+#   policy_arn = each.value
+# }
+
+resource "aws_iam_role_policy_attachment" "s3_attachment" {
+  role = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.s3_write_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_attachment" {
+  role = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.lambda_execution_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "cw_attachment" {
+  role = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.cw_policy.arn
 }
 
 ################
