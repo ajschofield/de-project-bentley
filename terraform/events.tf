@@ -1,23 +1,18 @@
-resource "aws_cloudwatch_event_target" "extract_lambda_cw_event" {
-  rule      = aws_cloudwatch_event_rule.lambda_trigger.name
-  target_id = "TargetFunctionV1"
-  arn       = aws_lambda_function.extract_lambda.arn #replaced lambda name placeholder
-  force_destroy = true
-}
-
 resource "aws_cloudwatch_event_rule" "lambda_trigger" {
   name                = "lambda-scheduled-trigger"
   description         = "Schedule to trigger the Lambda function"
   schedule_expression = "rate(30 minutes)"
-  force_destroy = true
-  # depends_on = [ 
-  #   aws_cloudwatch_event_target.extract_lambda_cw_event]
-  
-#   event_pattern = jsonencode({
-#     detail-type = 
-#       "AWS Console Sign In via CloudTrail"
-#     ]
-#   })
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_cloudwatch_event_target" "extract_lambda_cw_event" {
+  rule       = aws_cloudwatch_event_rule.lambda_trigger.name
+  target_id  = "TargetFunctionV1"
+  arn        = aws_lambda_function.extract_lambda.arn #replaced lambda name placeholder
+  depends_on = [aws_lambda_permission.allow_eventbridge]
 }
 
 resource "aws_lambda_permission" "allow_eventbridge" {
@@ -25,7 +20,7 @@ resource "aws_lambda_permission" "allow_eventbridge" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.extract_lambda.function_name #replaced lambda name placeholder
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.lambda_trigger.arn  
+  source_arn    = aws_cloudwatch_event_rule.lambda_trigger.arn
 }
 
 
@@ -43,7 +38,7 @@ resource "aws_s3_bucket_notification" "extract_bucket_notification" {
   bucket = aws_s3_bucket.extract_bucket.id #replaced bucket name placeholder
 
   lambda_function {
-    events             = ["s3:ObjectCreated:*"]  
+    events              = ["s3:ObjectCreated:*"]
     lambda_function_arn = aws_lambda_function.transform_lambda.arn #replaced lambda name placeholder
   }
 
@@ -65,7 +60,7 @@ resource "aws_s3_bucket_notification" "transform_bucket_notification" {
   bucket = aws_s3_bucket.transform_bucket.id #replaced bucket name placeholder
 
   lambda_function {
-    events             = ["s3:ObjectCreated:*"]  
+    events              = ["s3:ObjectCreated:*"]
     lambda_function_arn = aws_lambda_function.transform_lambda.arn #replaced lambda name placeholder
   }
 
