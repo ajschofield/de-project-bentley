@@ -10,7 +10,7 @@ resource "aws_lambda_function" "extract_lambda" {
     s3_bucket = aws_s3_bucket.lambda_code_bucket.bucket
     s3_key = "extract-lambda/extract_function.zip"
     role = aws_iam_role.multi_service_role.arn #<< lambda role placehodler
-    handler = "extract_lambda.lambda_handler" # << check that the function is called lambda handler
+    handler = "extract_lambda.extract" # << check that the function is called lambda handler
     runtime = "python3.11"
     environment {
         variables = {
