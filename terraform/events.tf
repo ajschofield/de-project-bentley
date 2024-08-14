@@ -4,7 +4,7 @@ resource "aws_cloudwatch_event_rule" "lambda_trigger" {
   schedule_expression = "rate(30 minutes)"
   
 #   event_pattern = jsonencode({
-#     detail-type = [
+#     detail-type = 
 #       "AWS Console Sign In via CloudTrail"
 #     ]
 #   })
