@@ -129,3 +129,30 @@ resource "aws_iam_role_policy_attachment" "cw_attachment" {
   policy_arn = aws_iam_policy.cw_policy.arn
 }
 
+###################
+# EVENTS POLICIES #
+###################
+
+data "aws_iam_policy_document" "cloudwatch_events_policy" {
+  statement {
+    actions = [
+      "events:PutRule",
+      "events:PutTargets",
+      "events:RemoveTargets",
+      "events:DeleteRule",
+      "events:PutEvents"
+    ]
+    resources = ["*"]
+    effect    = "Allow"
+  }
+}
+
+resource "aws_iam_policy" "cloudwatch_events_policy" {
+  name   = "cloudwatch_events_policy"
+  policy = data.aws_iam_policy_document.cloudwatch_events_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch_events_attachment" {
+  role       = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.cloudwatch_events_policy.arn
+}
