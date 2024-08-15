@@ -1,9 +1,14 @@
 # Extract Lambda Function
+data "archive_file" "extract_lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../src/extract_lambda.py"
+  output_path = "${path.module}/../extract_function.zip"
+}
 resource "aws_s3_object" "extract_lambda_code" {
   bucket = aws_s3_bucket.lambda_code_bucket.bucket
   key    = "${var.extract_lambda_name}/extract_function.zip"
-  source = "${path.module}/../extract_function.zip"
-  etag   = filemd5("${path.module}/../extract_function.zip")
+  source = data.archive_file.extract_lambda_zip.output_path
+  etag   = filemd5(data.archive_file.extract_lambda_zip.output_path)
 }
 
 resource "aws_lambda_function" "extract_lambda" {
@@ -22,11 +27,16 @@ resource "aws_lambda_function" "extract_lambda" {
 }
 
 # Transform Lambda Function
+data "archive_file" "transform_lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../src/transform_lambda.py"
+  output_path = "${path.module}/../transform_function.zip"
+}
 resource "aws_s3_object" "transform_lambda_code" {
   bucket = aws_s3_bucket.lambda_code_bucket.bucket
   key    = "${var.transform_lambda_name}/transform_function.zip"
-  source = "${path.module}/../transform_function.zip"
-  etag   = filemd5("${path.module}/../transform_function.zip")
+  source = data.archive_file.transform_lambda_zip.output_path
+  etag   = filemd5(data.archive_file.transform_lambda_zip.output_path)
 }
 
 resource "aws_lambda_function" "transform_lambda" {
@@ -45,11 +55,16 @@ resource "aws_lambda_function" "transform_lambda" {
 }
 
 # Load Lambda Function
+data "archive_file" "load_lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/../src/load_lambda.py"
+  output_path = "${path.module}/../load_function.zip"
+}
 resource "aws_s3_object" "load_lambda_code" {
   bucket = aws_s3_bucket.lambda_code_bucket.bucket
   key    = "${var.load_lambda_name}/load_function.zip"
-  source = "${path.module}/../load_function.zip"
-  etag   = filemd5("${path.module}/../load_function.zip")
+  source = data.archive_file.load_lambda_zip.output_path
+  etag   = filemd5(data.archive_file.load_lambda_zip.output_path)
 }
 
 resource "aws_lambda_function" "load_lambda" {
