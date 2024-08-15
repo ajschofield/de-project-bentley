@@ -1,14 +1,16 @@
+# Terraform
 *.tfstate
 *.tfstate.*
 *.tfvars
 *.tfvars.json
 .terraform.tfstate.lock.info
-*.zip
 .terraform/
 .terraform*
-log*
-.DS_Store
 
-venv
-.env
+# Output Files
+*.zip
+log*
 __pycache__/
+
+# OS-Related Files
+.DS_Store
