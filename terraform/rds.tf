@@ -2,9 +2,9 @@ data "aws_availability_zones" "available" {}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "2.77.0"
+  version = "5.12.1"
 
-  name                 = "${var.project_name}"
+  name                 = var.project_name
   cidr                 = "10.0.0.0/16"
   azs                  = data.aws_availability_zones.available.names
   public_subnets       = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
@@ -13,7 +13,7 @@ module "vpc" {
 }
 
 resource "aws_db_subnet_group" "Terrific-Totes-sub-gr" {
-  name       = "TT-db-subnet"
+  name       = "tt-db-subnet"
   subnet_ids = module.vpc.public_subnets
 
   tags = {
@@ -45,7 +45,7 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_db_parameter_group" "Terrific-Totes-param-gr" {
-  name   = "TT-db-param"
+  name   = "tt-db-param"
   family = "postgres14"
 
   parameter {
@@ -54,22 +54,24 @@ resource "aws_db_parameter_group" "Terrific-Totes-param-gr" {
   }
 }
 
-resource "aws_db_instance" "Terrific-Totes-rds" {
-  db_name                = "${var.project_name}"
-  instance_class         = "db.t3.micro"
-  allocated_storage      = 5
-  engine                 = "postgres"
-  engine_version         = "14.1"
-  username               = "user credentials for the root user" # we could use .env here
-  password               = "user password for the root user" # we could use .env here
+resource "aws_db_instance" "terrific-totes-rds" {
+  db_name           = var.project_name
+  instance_class    = "db.t3.micro"
+  allocated_storage = 5
+  engine            = "postgres"
+  engine_version    = "14.10"
+  username          = "totes"
+  password          = "totes123"
+  # username          = "user credentials for the root user" # we could use .env here
+  # password          = "user password for the root user"    # we could use .env here
   ### alternatively to providing username nad password we can specify:
-# resource "aws_kms_key" "example_key" {
-#       description = "Example KMS Key"
-# }
-# within the resource:
-#   manage_master_user_password   = true
-#   master_user_secret_kms_key_id = aws_kms_key.example.key_id
-# }
+  # resource "aws_kms_key" "example_key" {
+  #       description = "Example KMS Key"
+  # }
+  # within the resource:
+  #   manage_master_user_password   = true
+  #   master_user_secret_kms_key_id = aws_kms_key.example.key_id
+  # }
   db_subnet_group_name   = aws_db_subnet_group.Terrific-Totes-sub-gr.name
   vpc_security_group_ids = [aws_security_group.rds.id]
   parameter_group_name   = aws_db_parameter_group.Terrific-Totes-param-gr.name
