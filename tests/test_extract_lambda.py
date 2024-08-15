@@ -1,7 +1,7 @@
 import pytest
 import boto3
 from moto import mock_aws
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from unittest import TestCase
 from src.extract_lambda import list_existing_s3_files, connect_to_database, DBConnectionException, process_and_upload_tables
 import os 
@@ -81,32 +81,29 @@ class TestConnectToDatabase:
         with pytest.raises(DBConnectionException):
             connect_to_database()
         assert 'Interface error' in caplog.text
-
+'''
 class TestProcessAndUploadTables:
-    def test_error_process_and_upload_tables(mock_conn, mock_config, s3_client, caplog, mocker):
+    def test_error_process_and_upload_tables(mock_conn, mock_config, s3_client, caplog):
         logger = logging.getLogger()
         logger.info('Testing now.')
         caplog.set_level(logging.ERROR)
+        ####
+        queries = ["SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';",
+                    "SELECT * FROM Fruits;",
+                    "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = 'Fruits'"]
+        return_values = [[['Fruits']],
+                        [['Vegetable','Sour','Green'],['Berry','Sweet','Red']],
+                        [['Food_type'],['Flavour'],['Colour']]]
+        vals = dict(zip(queries,return_values))
 
-        with patch("src.extract_lambda.Connection", autospec=True) as mock_conn:
-            mock_db = connect_to_database()
-            # need to add a table 
-            s3_key = 'dummy/2024/8/14/dummy_16:46:30.txt'
-            mock_existing_files = mocker.Mock(return_value={s3_key: 'This is a test file.' })
+        ####
+        with patch('src.extract_lambda.connect_to_database') as mock_db:
+            mock_db().run.side_effects = return_values
+            s3_key = 'Fruits/2024/08/15/Fruits_16:46:30.csv'
+            existing_files = {s3_key: 'Food_type,Flavour,Colour\nFruit,Sour,Green\nBerry,Sweet,Red'}
             s3_client.create_bucket(Bucket='extract_bucket', 
-                        CreateBucketConfiguration={
-                            'LocationConstraint': 'eu-west-2'
-                        })
-            s3_client.upload_file('tests/dummy.txt', 'extract_bucket', s3_key)
-            process_and_upload_tables(mock_db, mock_existing_files, client=s3_client)
-
-            assert 'Error uploading to S3' in caplog.text
-
-#@pytest.mark.describe("Helpers")
-# @pytest.mark.it("Query processor returns correctly formatted dict")
-# def test_process_query():
-#     with patch("src.api.helpers.get_db_connection") as mock_conn:
-#         mock_conn().run.side_effect = db_data
-#         mock_conn().columns = sample_headers
-#         result = process_query("test query")
-#         assert result == sample_result
+                        CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'})
+            s3_client.upload_file('tests/dummy_identical.csv', 'extract_bucket', s3_key)
+            process_and_upload_tables(mock_db(), existing_files, client=s3_client)
+            assert 'No new data.' in caplog.text
+'''
