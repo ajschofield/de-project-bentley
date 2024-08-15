@@ -4,7 +4,7 @@
 ########################################################################
 
 # DEFINE MULTI-SERVICE ROLE (lambda, s3, cloudwatch, events)
-resource "aws_iam_role" "bentley_multi_service_role" {
+resource "aws_iam_role" "multi_service_role" {
   name = "multi_service_role"
 
   assume_role_policy = jsonencode({
@@ -16,16 +16,13 @@ resource "aws_iam_role" "bentley_multi_service_role" {
         Principal = {
           Service = [
             "lambda.amazonaws.com",
-            "states.amazonaws.com",
-            "events.amazonaws.com",
-            "s3.amazonaws.com"
+            "scheduler.amazonaws.com"
           ]
         }
       }
     ]
   })
 }
-
 
 
 ########################################################################
@@ -35,31 +32,22 @@ resource "aws_iam_role" "bentley_multi_service_role" {
 ########################################################################
 
 # S3 DEFINE POLICY
-resource "aws_iam_policy" "s3_access_policy" {
-  name        = "s3_access_policy"
-  path        = "/"
-  description = "IAM policy for S3 access"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:ListBucket"
-        ]
-        resources = [
-          "${aws_s3_bucket.extract_bucket.arn}/*",
-          "${aws_s3_bucket.transform_bucket.arn}/*",
-          "${aws_s3_bucket.lambda_bucket.arn}/*"
-          ]
-        }
-      ] 
-    }
-  )
+data "aws_iam_policy_document" "s3_data_policy_doc" {
+  statement {
+    actions = [
+      "s3:PutObject",
+      "s3:PutObjectRetention",
+      "s3:PutObjectTagging",
+      "s3:PutObjectAcl"
+    ]
+    resources = [
+      "${aws_s3_bucket.extract_bucket.arn}/*",
+      "${aws_s3_bucket.transform_bucket.arn}/*",
+      "${aws_s3_bucket.lambda_code_bucket.arn}/*",
+    ]
+  }
 }
+
 
 ########################################################################
 # LAMBDA SETUP
@@ -67,22 +55,22 @@ resource "aws_iam_policy" "s3_access_policy" {
 ########################################################################
 
 resource "aws_iam_policy" "lambda_execution_policy" {
-  name = "lambda_execution_policy"
-  path = "/"
+  name        = "lambda_execution_policy"
+  path        = "/"
   description = "IAM policy for Lambda execution"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-        {
+      {
         Effect = "Allow"
         Action = [
           "lambda:InvokeFunction",
           "lambda:GetFunction"
         ]
         Resource = "*"
-        }
-      ]
+      }
+    ]
     }
   )
 }
@@ -97,7 +85,7 @@ data "aws_iam_policy_document" "cw_document" {
     actions = ["logs:CreateLogGroup"]
     resources = [
       "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
-      ]
+    ]
   }
 
   statement {
@@ -105,11 +93,16 @@ data "aws_iam_policy_document" "cw_document" {
       "logs:CreateLogStream",
       "logs:CreateLogGroup",
       "logs:PutLogEvents"
-      ]
-      resources = [
-        "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*"
-      ]
+    ]
+    resources = [
+      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/*"
+    ]
   }
+}
+
+resource "aws_iam_policy" "cw_policy" {
+  name   = "cw_policy"
+  policy = data.aws_iam_policy_document.cw_document.json
 }
 
 ########################################################################
@@ -121,8 +114,45 @@ resource "aws_iam_policy" "s3_write_policy" {
   policy = data.aws_iam_policy_document.s3_data_policy_doc.json
 }
 
-# S3 ATTACH POLICY
-resource "aws_iam_role_policy_attachment" "lambda_s3_policy_attachment" {
-  role       = aws_iam_role.lambda_role.name
+resource "aws_iam_role_policy_attachment" "s3_attachment" {
+  role       = aws_iam_role.multi_service_role.name
   policy_arn = aws_iam_policy.s3_write_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_attachment" {
+  role       = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.lambda_execution_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "cw_attachment" {
+  role       = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.cw_policy.arn
+}
+
+###################
+# EVENTS POLICIES #
+###################
+
+data "aws_iam_policy_document" "cloudwatch_events_policy" {
+  statement {
+    actions = [
+      "events:PutRule",
+      "events:PutTargets",
+      "events:RemoveTargets",
+      "events:DeleteRule",
+      "events:PutEvents"
+    ]
+    resources = ["*"]
+    effect    = "Allow"
+  }
+}
+
+resource "aws_iam_policy" "cloudwatch_events_policy" {
+  name   = "cloudwatch_events_policy"
+  policy = data.aws_iam_policy_document.cloudwatch_events_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch_events_attachment" {
+  role       = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.cloudwatch_events_policy.arn
 }

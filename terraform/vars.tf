@@ -1,31 +1,31 @@
 variable "s3_extract_bucket_name" {
-    type = string
-    default = "extract-bucket"
+  type    = string
+  default = "extract-bucket"
 }
 
 variable "s3_transform_bucket_name" {
-    type = string
-    default = "transform-bucket"
+  type    = string
+  default = "transform-bucket"
 }
 
 variable "s3_code_bucket_name" {
-    type = string
-    default = "lambda-bucket"
+  type    = string
+  default = "lambda-bucket"
 }
 
 variable "extract_lambda_name" {
-    type = string
-    default = "extract-lambda"
+  type    = string
+  default = "extract-lambda"
 }
 
 variable "transform_lambda_name" {
-    type = string
-    default = "transform-lambda" 
+  type    = string
+  default = "transform-lambda"
 }
 
 variable "load_lambda_name" {
-    type = string
-    default = "load-lambda" 
+  type    = string
+  default = "load-lambda"
 }
 
 variable "project_name" {

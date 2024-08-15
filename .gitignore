@@ -1,0 +1,10 @@
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.tfstate.lock.info
+*.zip
+.terraform/
+.terraform*
+log*
+.DS_Store
