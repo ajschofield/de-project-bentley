@@ -28,6 +28,7 @@ jobs:
     terraform-quality-checks:
         runs-on: ubuntu-latest
         steps:
+            - uses : actions/checkout@v4
             - name: 'Terraform: Setup'
               uses: hashicorp/setup-terraform@v3
               with:
