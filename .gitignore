@@ -1,3 +1,14 @@
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.tfstate.lock.info
+*.zip
+.terraform/
+.terraform*
+log*
+.DS_Store
+
 venv
 .env
 __pycache__/

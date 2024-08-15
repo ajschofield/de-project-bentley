@@ -7,8 +7,10 @@ import logging
 import json
 from datetime import datetime
 
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
 
 class DBConnectionException(Exception):
     """Wraps pg8000.native Error or DatabaseError."""
