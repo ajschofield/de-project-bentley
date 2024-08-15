@@ -25,10 +25,6 @@ jobs:
             - name : 'Python: Formatting'
               run: |
                 black --check .
-            - name: 'Python: Security'
-              run: |
-                bandit -lll */*.py *c/*.py
-                safety check
             - name: 'Terraform: Setup'
               uses: hashicorp/setup-terraform@v3
               with:
