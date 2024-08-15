@@ -6,23 +6,7 @@ on:
             - 'main'
 
 jobs:
-    check-if-py-files-exist:
-        runs-on: ubuntu-latest
-        outputs:
-            py_files_exist: ${{ steps.check.outputs.py_files_exist }}
-        steps:
-            - uses: actions/checkout@v2
-            - id: check_files
-              run: |
-                if [ -n "$(find . -name '*.py')" ]; then
-                    echo "::set-output name=py_files_exist::true"
-                else
-                    echo "::set-output name=py_files_exist::false"
-                fi
-
     quality-checks:
-        needs: check-if-py-files-exist
-        if: ${{ needs.check-if-py-files-exist.outputs.py_files_exist == 'true' }}
         runs-on: ubuntu-latest
         steps:
             - uses : actions/checkout@v2
