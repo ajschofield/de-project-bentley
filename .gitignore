@@ -10,6 +10,7 @@
 # Output Files
 *.zip
 log*
+__pycache__/
 
 # OS-Related Files
 .DS_Store
