@@ -1,0 +1,15 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.tfstate.lock.info
+.terraform/
+.terraform*
+
+# Output Files
+*.zip
+log*
+
+# OS-Related Files
+.DS_Store
