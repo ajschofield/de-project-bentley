@@ -33,11 +33,11 @@ jobs:
               with:
                 terraform_version: latest
             - name: 'Terraform: Formatting'
-              working-directory: ./terraform
+              working-directory: terraform
               run: terraform fmt -check -recursive
             - name: 'Terraform: Initialise'
-              working-directory: ./terraform
+              working-directory: terraform
               run: terraform init -backend=false
             - name: 'Terraform: Validate'
-              working-directory: ./terraform
+              working-directory: terraform
               run: terraform validate
