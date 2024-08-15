@@ -8,3 +8,4 @@
 .terraform*
 log*
 .DS_Store
+venv

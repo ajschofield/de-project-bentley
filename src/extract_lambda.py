@@ -2,6 +2,7 @@ from pg8000.native import Connection, Error, DatabaseError, InterfaceError
 from dotenv import load_dotenv
 import os
 
+
 load_dotenv()
 
 def extract():
