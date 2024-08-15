@@ -29,8 +29,8 @@ variable "load_lambda_name" {
 }
 
 variable "project_name" {
-    type = string
-    default = "Terrific-Totes"
+  type    = string
+  default = "tt"
 }
 
 data "aws_caller_identity" "current" {}
