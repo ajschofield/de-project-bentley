@@ -20,47 +20,48 @@ class DBConnectionException(Exception):
         self.message = str(e)
         super().__init__(self.message)
 
+
 def lambda_handler(event, context):
     """This lambda function connects to the Totesys database, lists the contents of the ingestion bucket,
-       and converts all tables to CSV and if any of those tables do not exist in, or are different to the ones in s3, it uploads them
-       it uses 3 helper functions to achieve these 3 functionalities 
+    and converts all tables to CSV and if any of those tables do not exist in, or are different to the ones in s3, it uploads them
+    it uses 3 helper functions to achieve these 3 functionalities
     """
     try:
         db = connect_to_database()
         existing_files = list_existing_s3_files()
         any_changes = process_and_upload_tables(db, existing_files)
-        
+
         if not any_changes:
             logger.info("No changes detected in the database.")
             return {
-                'statusCode': 200,
-                'body': json.dumps('No changes detected, no CSV files were uploaded.')
+                "statusCode": 200,
+                "body": json.dumps("No changes detected, no CSV files were uploaded."),
             }
         else:
             return {
-                'statusCode': 200,
-                'body': json.dumps('CSV files processed and uploaded successfully.')
+                "statusCode": 200,
+                "body": json.dumps("CSV files processed and uploaded successfully."),
             }
     except Exception as e:
-        logger.error(f'Error: {e}')
-        return {
-            'statusCode': 500,
-            'body': json.dumps('Internal server error.')
-        }
+        logger.error(f"Error: {e}")
+        return {"statusCode": 500, "body": json.dumps("Internal server error.")}
     finally:
         if db:
             db.close()
 
 
-def retrieve_secrets(sm_client=boto3.client('secretsmanager'), secret_name='bentley-secrets'):
+def retrieve_secrets(
+    sm_client=boto3.client("secretsmanager"), secret_name="bentley-secrets"
+):
     try:
         response = sm_client.get_secret_value(SecretId=secret_name)
-        if 'SecretString' in response:
-            secret = json.loads(response['SecretString'])
+        if "SecretString" in response:
+            secret = json.loads(response["SecretString"])
             return secret
     except ClientError as e:
-        logger.error(f'Could not retrieve secrets: {e}')
+        logger.error(f"Could not retrieve secrets: {e}")
         raise e
+
 
 def connect_to_database() -> Connection:
     try:
@@ -72,87 +73,98 @@ def connect_to_database() -> Connection:
         database = secrets["database"]
 
         return Connection(
-            database=database,
-            user=user,
-            password=password,
-            host=host,
-            port=port
+            database=database, user=user, password=password, host=host, port=port
         )
     except InterfaceError as i:
-        logger.error(f'Interface error: {i}')
+        logger.error(f"Interface error: {i}")
         raise DBConnectionException("Failed to connect to database")
 
-def extract_bucket(client=boto3.client('s3')):
+
+def extract_bucket(client=boto3.client("s3")):
     response = client.list_buckets()
-    extract_bucket_filter = [bucket['Name'] for bucket in response['Buckets'] if 'extract' in bucket['Name']]
+    extract_bucket_filter = [
+        bucket["Name"] for bucket in response["Buckets"] if "extract" in bucket["Name"]
+    ]
     return extract_bucket_filter[0]
 
-def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client('s3')):
-    """Creates a dictionary and populates it with the 
-       results of listing the contents of the s3 bucket, then
-       returns the populated dictionary
+
+def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client("s3")):
+    """Creates a dictionary and populates it with the
+    results of listing the contents of the s3 bucket, then
+    returns the populated dictionary
     """
-    
+
     existing_files = {}
-    
+
     try:
         response = client.list_objects_v2(Bucket=bucket_name)
-        
-        if 'Contents' in response:
-            for obj in response['Contents']:
-                s3_key = obj['Key']
+
+        if "Contents" in response:
+            for obj in response["Contents"]:
+                s3_key = obj["Key"]
                 try:
                     file_obj = client.get_object(Bucket=bucket_name, Key=s3_key)
-                    file_content = file_obj['Body'].read().decode('utf-8')
+                    file_content = file_obj["Body"].read().decode("utf-8")
                     existing_files[s3_key] = file_content
                 except ClientError as e:
-                    logger.error(f'Error retrieving S3 object {s3_key}: {e}')
+                    logger.error(f"Error retrieving S3 object {s3_key}: {e}")
         else:
-            logger.error('The bucket is empty')
-    
+            logger.error("The bucket is empty")
+
     except ClientError as e:
-        logger.error(f'Error listing S3 objects: {e}')
-    
+        logger.error(f"Error listing S3 objects: {e}")
+
     return existing_files
 
 
-
-def process_and_upload_tables(db, existing_files, client=boto3.client('s3')):
-    """Creates a list of the tables from a database query and 
-       then selects everything from each table in individual queries
-       it then writes each table to CSV files and compares with the item 
-       in the existing_files dictionary with the same name. If it finds any changes
-       to files, or new tables/files it uploads them to the s3 bucket
+def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
+    """Creates a list of the tables from a database query and
+    then selects everything from each table in individual queries
+    it then writes each table to CSV files and compares with the item
+    in the existing_files dictionary with the same name. If it finds any changes
+    to files, or new tables/files it uploads them to the s3 bucket
     """
-    ## NEW CODE
+    # NEW CODE
     all_datetimes = []
     for file_names in existing_files.keys():
-        datetime_str_on_s3 = ''.join(re.search(r'\/(.+/).+_(.+)\.csv',file_names).group(1,2))
-        all_datetimes.append(datetime.strptime(datetime_str_on_s3, '%Y/%m/%d/%H:%M:%S'))
+        datetime_str_on_s3 = "".join(
+            re.search(r"\/(.+/).+_(.+)\.csv", file_names).group(1, 2)
+        )
+        all_datetimes.append(datetime.strptime(datetime_str_on_s3, "%Y/%m/%d/%H:%M:%S"))
     latest_timestamp = max(all_datetimes)
-    ## END OF NEW CODE
+    # END OF NEW CODE
 
-    tables = db.run("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
+    tables = db.run(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';"
+    )
     print(tables)
     for table in tables:
         table_name = table[0]
-        rows = db.run(f"SELECT * FROM {table_name} WHERE last_updated >= {datetime.strftime(latest_timestamp,'%H-%m-%d %H:%M:%S')};")
+        rows = db.run(
+            f"SELECT * FROM {table_name} WHERE last_updated >= {datetime.strftime(latest_timestamp,'%H-%m-%d %H:%M:%S')};"
+        )
 
     if rows:
         csv_file_path = f"/tmp/{table_name}.csv"
-        with open(csv_file_path, "w", newline='') as file:
+        with open(csv_file_path, "w", newline="") as file:
             writer = csv.writer(file)
-            #column_names = [desc["name"] for desc in db.columns(f"SELECT * FROM {table_name};")]
-            column_names = [col_name[0] for col_name in db.run(f"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = '{table_name}';")]
+            # column_names = [desc["name"] for desc in db.columns(f"SELECT * FROM {table_name};")]
+            column_names = [
+                col_name[0]
+                for col_name in db.run(
+                    f"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = '{table_name}';"
+                )
+            ]
             writer.writerow(column_names)
             writer.writerows(rows)
-        s3_key = datetime.strftime(datetime.today(),f'{table_name}/%Y/%m/%d/{table_name}_%H:%M:%S.csv')
+        s3_key = datetime.strftime(
+            datetime.today(), f"{table_name}/%Y/%m/%d/{table_name}_%H:%M:%S.csv"
+        )
 
         try:
             client.upload_file(csv_file_path, extract_bucket(), s3_key)
             logger.info(f"Uploaded {s3_key} to S3.")
         except ClientError as e:
-            logger.error(f'Error uploading to S3: {e}')
+            logger.error(f"Error uploading to S3: {e}")
     else:
         logger.info(f"No new data.")
-    
