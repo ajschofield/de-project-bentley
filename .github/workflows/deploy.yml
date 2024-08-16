@@ -1,10 +1,13 @@
 name: deploy-terraform
 
 on:
-  push:
+  pull-request:
     branches:
-      - ci-cd-branch # Adjust the branch based on our deployment strategy
-
+      - main
+  pull:
+    branches:
+      - main
+      
 
 jobs:
   deploy-terraform:
