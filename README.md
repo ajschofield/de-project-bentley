@@ -21,4 +21,4 @@ can:
 1. Extract the data from the `totesys` operational database
 2. Store the data in AWS S3 buckets, that will form our data lake
 3. Transform the data into a suitable schema for the data warehouse
-4. Load the data into the data warehouse hosted on AWS
+4. Load the transformed data into the data warehouse hosted on AWS
