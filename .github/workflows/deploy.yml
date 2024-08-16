@@ -5,15 +5,17 @@ on:
     branches:
       - ci-cd-branch # Adjust the branch based on our deployment strategy
 
+
 jobs:
   deploy-terraform:
     name: Deploy Terraform
     runs-on: ubuntu-latest
-    environment: test-env
+    #needs: run-checks (must ref on-commit.yml file)
+    environment: production
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-
+      
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
 
