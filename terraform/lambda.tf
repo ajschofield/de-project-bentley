@@ -89,14 +89,13 @@ locals {
 }
 
 resource "null_resource" "prepare_layer" {
-  triggers = {
-    requirements_hash = filesha1(local.requirements)
-  }
   provisioner "local-exec" {
     command = <<EOT
-      mkdir -p ${local.layer_dir}/python/lib/python3.11/site-packages/
-      pip install -r ${local.requirements} -t ${local.layer_dir}/python/lib/python3.11/site-packages/
-      cd ${local.layer_dir} && zip -r ${local.layer_zip} .
+      cd ${local.layer_dir}
+      rm -rf python
+      mkdir python
+      pip3 install -r ${local.requirements} -t python/
+      zip -r ${local.layer_zip} python/
     EOT
   }
 }
@@ -104,7 +103,7 @@ resource "null_resource" "prepare_layer" {
 resource "aws_s3_object" "layer_zip" {
   bucket     = aws_s3_bucket.lambda_code_bucket.bucket
   key        = "layer.zip"
-  source     = local.layer_zip
+  source     = "${local.layer_dir}/${local.layer_zip}"
   depends_on = [null_resource.prepare_layer]
 }
 
