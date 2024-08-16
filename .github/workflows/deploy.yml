@@ -1,19 +1,24 @@
 name: deploy-terraform
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
-      - test-ci/**  # Adjust the branch based on our deployment strategy
+      - main
+      
 
 jobs:
   deploy-terraform:
     name: Deploy Terraform
     runs-on: ubuntu-latest
-    environment: test-env
+    #needs: run-checks (must ref on-commit.yml file)
+    environment: production
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-
+      
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
 
