@@ -83,7 +83,7 @@ resource "aws_lambda_function" "load_lambda" {
 }
 
 locals {
-  layer_dir       = "${path.module}/../python"
+  layer_dir       = "${path.module}/.."
   requirements    = "${path.module}/../requirements.txt"
   layer_zip       = "${path.module}/../layer.zip"
 }
@@ -94,9 +94,9 @@ resource "null_resource" "prepare_layer" {
   }
   provisioner "local-exec" {
     command = <<EOT
-      mkdir -p ${local.layer_dir}/lib/python3.8/site-packages/
-      pip install -r ${local.requirements} -t ${local.layer_dir}/lib/python3.11/site-packages/
-      cd ${local.layer_dir} && zip -r ${local.layer_zip} .
+      mkdir -p ${local.layer_dir}/python/lib/python3.11/site-packages/
+      pip install -r ${local.requirements} -t ${local.layer_dir}/python/lib/python3.11/site-packages/
+
     EOT
 }
   }
