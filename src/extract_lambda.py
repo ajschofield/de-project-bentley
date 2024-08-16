@@ -11,7 +11,7 @@ import re
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-
+## DB Exception class
 class DBConnectionException(Exception):
     """Wraps pg8000.native Error or DatabaseError."""
 
