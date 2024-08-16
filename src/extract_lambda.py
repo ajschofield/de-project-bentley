@@ -1,4 +1,4 @@
-from pg8000.native import Connection, InterfaceError
+from pg8000.native import Connection, InterfaceError, identifier
 import boto3
 import csv
 from botocore.exceptions import ClientError
@@ -136,12 +136,15 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
     latest_timestamp = max(all_datetimes)
 
     ## Iterating through tables on the database and retrieving only latest changes vs previous file load
-    tables = db.run("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
+    tables = db.run("""
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_schema='public' AND table_type='BASE TABLE';""")
     for table in tables:
         table_name = table[0]
-        rows = db.run(
-            f"SELECT * FROM {table_name} WHERE last_updated >= {datetime.strftime(latest_timestamp,'%H-%m-%d %H:%M:%S')};"
-        )
+        rows = db.run(f"SELECT * FROM {identifier(table_name)} "
+                      "WHERE last_updated >= :latest;",
+                      latest={datetime.strftime(latest_timestamp,'%H-%m-%d %H:%M:%S')})
 
         ## Creating a temporary file path and writing the column name to it followed by each row of data
         if rows:
@@ -149,7 +152,9 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
             with open(csv_file_path, "w", newline='') as file:
                 writer = csv.writer(file)
                 #column_names = [desc["name"] for desc in db.columns(f"SELECT * FROM {table_name};")]
-                column_names = [col_name[0] for col_name in db.run(f"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = '{table_name}';")]
+                column_names = [col_name[0] for col_name in 
+                                db.run("""SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS 
+                                       WHERE table_name = :table ;""", table=table_name)]
                 writer.writerow(column_names)
                 writer.writerows(rows)
             s3_key = datetime.strftime(datetime.today(),f'{table_name}/%Y/%m/%d/{table_name}_%H:%M:%S.csv')
