@@ -17,9 +17,14 @@ name = "secrets"
 
 [[transformers]]
 name = "black"
+enabled = "true"
 
 [[transformers]]
 name = "autopep8"
+enabled = "true"
 
 [[transformers]]
 name = "ruff"
+enabled = "true"
+
+
