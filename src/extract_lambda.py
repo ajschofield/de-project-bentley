@@ -136,9 +136,9 @@ def process_and_upload_tables(db, existing_files, client=boto3.client('s3')):
     print(tables)
     for table in tables:
         table_name = table[0]
-        rows = db.run(f"SELECT * FROM {table_name};")
-        
+        rows = db.run(f"SELECT * FROM {table_name} WHERE last_updated >= {datetime.strftime(latest_timestamp,'%H-%m-%d %H:%M:%S')};")
 
+    if rows:
         csv_file_path = f"/tmp/{table_name}.csv"
         with open(csv_file_path, "w", newline='') as file:
             writer = csv.writer(file)
@@ -147,16 +147,12 @@ def process_and_upload_tables(db, existing_files, client=boto3.client('s3')):
             writer.writerow(column_names)
             writer.writerows(rows)
         s3_key = datetime.strftime(datetime.today(),f'{table_name}/%Y/%m/%d/{table_name}_%H:%M:%S.csv')
-        new_csv_content = open(csv_file_path, "r").read()
-        ## NEW CODE
-        latest_s3_object_key = datetime.strftime(latest_timestamp,f'{table_name}/%Y/%m/%d/{table_name}_%H:%M:%S.csv')
-        ## END OF NEW CODE
-        if existing_files[latest_s3_object_key] != new_csv_content: 
-            try:
-                client.upload_file(csv_file_path, extract_bucket(), s3_key)
-                logger.info(f"Uploaded {s3_key} to S3.")
-            except ClientError as e:
-                logger.error(f'Error uploading to S3: {e}')
-        else:
-            logger.info(f"No new data.")
-        
+
+        try:
+            client.upload_file(csv_file_path, extract_bucket(), s3_key)
+            logger.info(f"Uploaded {s3_key} to S3.")
+        except ClientError as e:
+            logger.error(f'Error uploading to S3: {e}')
+    else:
+        logger.info(f"No new data.")
+    
