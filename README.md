@@ -35,3 +35,9 @@ others.
 - [ ] Logging and monitoring with CloudWatch
 - [ ] Notifications for errors and successful runs (e.g. successful ingestion)
 - [ ] Visualisation of warehouse data
+
+# Test Coverage
+TBA
+
+# Contributors
+TBA
