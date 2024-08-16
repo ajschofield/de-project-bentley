@@ -3,7 +3,7 @@ name: deploy-terraform
 on:
   push:
     branches:
-      - test-ci/**  # Adjust the branch based on our deployment strategy
+      - ci-cd-branch # Adjust the branch based on our deployment strategy
 
 jobs:
   deploy-terraform:
