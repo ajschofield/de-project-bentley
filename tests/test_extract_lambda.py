@@ -76,6 +76,17 @@ class TestLambdaHandler:
             mock_process_and_upload_tables.assert_called_once_with(mock_db, {})
             mock_db.close.assert_called_once()
 
+    def test_lambda_handler_exception_error(self, mocker):
+        with patch("src.extract_lambda.connect_to_database", side_effect=Exception("Database connection error")):
+            mock_process_and_upload_tables = mocker.patch("src.extract_lambda.process_and_upload_tables")
+            mock_list_existing_s3_files = mocker.patch("src.extract_lambda.list_existing_s3_files")
+            event = {}
+            context = {}
+            response = lambda_handler(event, context)
+            assert response['statusCode'] == 500
+            assert json.loads(response['body']) == 'Internal server error.'
+            mock_list_existing_s3_files.assert_not_called()
+            mock_process_and_upload_tables.assert_not_called()        
 
 class TestListExistingS3Files:
     def test_error_if_no_bucket(self, s3_client, caplog):
