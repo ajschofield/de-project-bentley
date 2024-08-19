@@ -1,12 +1,12 @@
-from pg8000.native import Connection, InterfaceError, identifier
-import boto3
 import csv
-from botocore.exceptions import ClientError
-import logging
 import json
-from datetime import datetime
+import logging
 import re
+from datetime import datetime
 
+import boto3
+from botocore.exceptions import ClientError
+from pg8000.native import Connection, InterfaceError, identifier
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
