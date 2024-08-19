@@ -21,7 +21,7 @@ resource "aws_cloudwatch_event_rule" "lambda_trigger" {
 resource "aws_cloudwatch_event_target" "extract_lambda_cw_event" {
   rule       = aws_cloudwatch_event_rule.lambda_trigger.name
   target_id  = "TargetFunctionV1"
-  arn        = aws_lambda_function.extract_lambda.arn #replaced lambda name placeholder
+  arn        = aws_lambda_function.extract_lambda.arn
   depends_on = [aws_lambda_permission.allow_eventbridge]
 }
 
@@ -44,9 +44,9 @@ resource "aws_lambda_permission" "allow_eventbridge" {
 resource "aws_lambda_permission" "allow_s3_ingestion" {
   statement_id  = "AllowS3InvokeLambdaTransform${random_string.suffix.result}"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.transform_lambda.function_name #replaced lambda name placeholder
+  function_name = aws_lambda_function.transform_lambda.function_name
   principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.extract_bucket.arn #replaced bucket name placeholder
+  source_arn    = aws_s3_bucket.extract_bucket.arn
 
   lifecycle {
     replace_triggered_by = [random_string.suffix]
@@ -55,11 +55,11 @@ resource "aws_lambda_permission" "allow_s3_ingestion" {
 
 
 resource "aws_s3_bucket_notification" "extract_bucket_notification" {
-  bucket = aws_s3_bucket.extract_bucket.id #replaced bucket name placeholder
+  bucket = aws_s3_bucket.extract_bucket.id
 
   lambda_function {
     events              = ["s3:ObjectCreated:*"]
-    lambda_function_arn = aws_lambda_function.transform_lambda.arn #replaced lambda name placeholder
+    lambda_function_arn = aws_lambda_function.transform_lambda.arn
   }
 
   depends_on = [aws_lambda_permission.allow_s3_ingestion]
@@ -72,9 +72,9 @@ resource "aws_s3_bucket_notification" "extract_bucket_notification" {
 resource "aws_lambda_permission" "allow_s3_transform_bucket" {
   statement_id  = "AllowS3InvokeLambdaTransform${random_string.suffix.result}"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.transform_lambda.function_name #replaced lambda name placeholder
+  function_name = aws_lambda_function.transform_lambda.function_name
   principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.transform_bucket.arn #replaced bucket name placeholder
+  source_arn    = aws_s3_bucket.transform_bucket.arn
 
   lifecycle {
     replace_triggered_by = [random_string.suffix]
@@ -83,11 +83,11 @@ resource "aws_lambda_permission" "allow_s3_transform_bucket" {
 
 
 resource "aws_s3_bucket_notification" "transform_bucket_notification" {
-  bucket = aws_s3_bucket.transform_bucket.id #replaced bucket name placeholder
+  bucket = aws_s3_bucket.transform_bucket.id
 
   lambda_function {
     events              = ["s3:ObjectCreated:*"]
-    lambda_function_arn = aws_lambda_function.transform_lambda.arn #replaced lambda name placeholder
+    lambda_function_arn = aws_lambda_function.transform_lambda.arn
   }
 
   depends_on = [aws_lambda_permission.allow_s3_transform_bucket]
