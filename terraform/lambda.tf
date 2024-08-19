@@ -16,6 +16,8 @@ locals {
 
 resource "null_resource" "prepare_layer" {
 
+  # New change: only run the script if the layer zip does not exist
+
   triggers = {
     layer_zip_exists = fileexists(local.layer_zip_path) ? "exists" : "not_exists"
   }
