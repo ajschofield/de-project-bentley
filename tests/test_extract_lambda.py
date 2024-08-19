@@ -3,6 +3,9 @@ import boto3
 from moto import mock_aws
 from unittest.mock import patch, MagicMock
 from unittest import TestCase
+import os
+import logging
+import json
 from src.extract_lambda import (
     list_existing_s3_files,
     connect_to_database,
@@ -10,9 +13,6 @@ from src.extract_lambda import (
     lambda_handler,
     process_and_upload_tables,
 )
-import os
-import logging
-import json
 
 
 @pytest.fixture(scope="class")

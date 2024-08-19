@@ -14,3 +14,4 @@ __pycache__/
 
 # OS-Related Files
 .DS_Store
+venv
