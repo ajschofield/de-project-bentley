@@ -12,12 +12,14 @@ resource "aws_s3_object" "extract_lambda_code" {
 }
 
 resource "aws_lambda_function" "extract_lambda" {
-  function_name = var.extract_lambda_name
-  s3_bucket     = aws_s3_bucket.lambda_code_bucket.bucket
-  s3_key        = aws_s3_object.extract_lambda_code.key
-  role          = aws_iam_role.multi_service_role.arn
-  handler       = "extract_lambda.extract"
-  runtime       = "python3.11"
+  function_name    = var.extract_lambda_name
+  s3_bucket        = aws_s3_bucket.lambda_code_bucket.bucket
+  s3_key           = aws_s3_object.extract_lambda_code.key
+  layers           = [aws_lambda_layer_version.lambda_layer.arn]
+  role             = aws_iam_role.multi_service_role.arn
+  handler          = "extract_lambda.lambda_handler"
+  runtime          = "python3.11"
+  source_code_hash = data.archive_file.extract_lambda_zip.output_base64sha256
 
   lifecycle {
     create_before_destroy = true
@@ -40,12 +42,14 @@ resource "aws_s3_object" "transform_lambda_code" {
 }
 
 resource "aws_lambda_function" "transform_lambda" {
-  function_name = var.transform_lambda_name
-  s3_bucket     = aws_s3_bucket.lambda_code_bucket.bucket
-  s3_key        = aws_s3_object.transform_lambda_code.key
-  role          = aws_iam_role.multi_service_role.arn
-  handler       = "transform_lambda.transform"
-  runtime       = "python3.11"
+  function_name    = var.transform_lambda_name
+  s3_bucket        = aws_s3_bucket.lambda_code_bucket.bucket
+  s3_key           = aws_s3_object.transform_lambda_code.key
+  layers           = [aws_lambda_layer_version.lambda_layer.arn]
+  role             = aws_iam_role.multi_service_role.arn
+  handler          = "transform_lambda.lambda_handler"
+  runtime          = "python3.11"
+  source_code_hash = data.archive_file.transform_lambda_zip.output_base64sha256
 
   lifecycle {
     create_before_destroy = true
@@ -68,12 +72,14 @@ resource "aws_s3_object" "load_lambda_code" {
 }
 
 resource "aws_lambda_function" "load_lambda" {
-  function_name = var.load_lambda_name
-  s3_bucket     = aws_s3_bucket.lambda_code_bucket.bucket
-  s3_key        = aws_s3_object.load_lambda_code.key
-  role          = aws_iam_role.multi_service_role.arn
-  handler       = "load_lambda.load"
-  runtime       = "python3.11"
+  function_name    = var.load_lambda_name
+  s3_bucket        = aws_s3_bucket.lambda_code_bucket.bucket
+  s3_key           = aws_s3_object.load_lambda_code.key
+  layers           = [aws_lambda_layer_version.lambda_layer.arn]
+  role             = aws_iam_role.multi_service_role.arn
+  handler          = "load_lambda.lambda_handler"
+  runtime          = "python3.11"
+  source_code_hash = data.archive_file.load_lambda_zip.output_base64sha256
 
   lifecycle {
     create_before_destroy = true
@@ -82,37 +88,38 @@ resource "aws_lambda_function" "load_lambda" {
   depends_on = [aws_s3_object.load_lambda_code]
 }
 
+# Lambda Layer Specification
 locals {
-  layer_dir    = "${path.module}/.."
-  requirements = "${path.module}/../requirements.txt"
-  layer_zip    = "${path.module}/../layer.zip"
+  layer_dir    = "lambda_layer"
+  requirements = "requirements.txt"
+  layer_zip    = "layer.zip"
+  layer_name   = "lambda_layer_dev"
 }
 
 resource "null_resource" "prepare_layer" {
-  triggers = {
-    requirements_hash = filesha1(local.requirements)
-  }
   provisioner "local-exec" {
     command = <<EOT
-      mkdir -p ${local.layer_dir}/python/lib/python3.11/site-packages/
-      pip install -r ${local.requirements} -t ${local.layer_dir}/python/lib/python3.11/site-packages/
-      cd ${local.layer_dir} && zip -r ${local.layer_zip} .
-    EOT
-  }
+      cd ${local.layer_dir}
+      rm -rf python
+      mkdir python
+      pip3 install -r ${local.requirements} -t python/
+      zip -r ${local.layer_zip} python 
+    EOT 
+  } #removed / at the end of python in line 99
 }
 
-resource "aws_s3_object" "layer_zip" {
-  bucket     = aws_s3_bucket.lambda_code_bucket.bucket
-  key        = "layer.zip"
-  source     = local.layer_zip
+resource "aws_s3_object" "lambda_layer_zip" {
+  bucket     = aws_s3_bucket.lambda_code_bucket.id #bucket instead of id
+  key        = "lambda_layer/${local.layer_name}/${local.layer_zip}"
+  source     = "${local.layer_dir}/${local.layer_zip}"
   depends_on = [null_resource.prepare_layer]
 }
 
 resource "aws_lambda_layer_version" "lambda_layer" {
-  layer_name          = "lambda_layer"
+  layer_name          = local.layer_name
   compatible_runtimes = ["python3.11"]
-  s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
-  s3_key              = aws_s3_object.layer_zip.key
+  s3_bucket           = aws_s3_bucket.lambda_layer_bucket.id #bucket instead of id
+  s3_key              = aws_s3_object.lambda_layer_zip.key
   skip_destroy        = true
-  depends_on          = [aws_s3_object.layer_zip]
+  depends_on          = [aws_s3_object.lambda_layer_zip]
 }
