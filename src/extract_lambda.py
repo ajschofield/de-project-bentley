@@ -159,13 +159,11 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
     )
 
     for table in tables:
-        print(tables)
         table_name = table[0]
         rows = db.run(
             f"SELECT * FROM {identifier(table_name)} WHERE last_updated >= :latest;",
             latest={datetime.strftime(latest_timestamp, "%Y-%m-%d %H:%M:%S")},
         )
-        print("rows", rows)
         # Creating a temporary file path and writing the column name to it followed by each row of data
         if rows:
             csv_file_path = f"/tmp/{table_name}.csv"
