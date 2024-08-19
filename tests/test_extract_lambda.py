@@ -72,7 +72,11 @@ class TestLambdaHandler:
         ]
         with patch("src.extract_lambda.connect_to_database", return_value=mock_db):
             mock_process_and_upload_tables = mocker.patch(
-                "src.extract_lambda.process_and_upload_tables", return_value=mock_db
+                "src.extract_lambda.process_and_upload_tables",
+                return_value={
+                    "updated": ["Fruits"],
+                    "no change": ["Vegetable", "Berry"],
+                },
             )
             mock_list_existing_s3_files = mocker.patch(
                 "src.extract_lambda.list_existing_s3_files", return_value={}
@@ -81,9 +85,9 @@ class TestLambdaHandler:
             context = {}
             response = lambda_handler(event, context)
             assert response["statusCode"] == 200
-            assert (
-                json.loads(response["body"])
-                == "CSV files processed and uploaded successfully."
+            assert json.loads(response["body"]) == (
+                "CSV files processed for Fruits and uploaded successfully."
+                "The following tables were not updated: Vegetable, Berry"
             )
             mock_list_existing_s3_files.assert_called_once()
             mock_process_and_upload_tables.assert_called_once_with(mock_db, {})
