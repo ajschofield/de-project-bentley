@@ -29,6 +29,7 @@ def lambda_handler(event, context):
     and converts all tables to CSV and if any of those tables do not exist in, or are different to the ones in s3, it uploads them
     it uses 3 helper functions to achieve these 3 functionalities
     """
+    db = None
     try:
         db = connect_to_database()
         existing_files = list_existing_s3_files()
