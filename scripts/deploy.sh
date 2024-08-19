@@ -28,7 +28,21 @@ select yn in "Yes" "No"; do
             esac
         done
 
-        terraform apply -auto-approve
+        terraform apply
+
+        echo "Would you like to destroy the newly-created infrastructure?"
+        select destroy_2 in "Yes" "No"; do
+            case $destroy_2 in
+            Yes)
+                terraform destroy
+                break
+                ;;
+            No)
+                echo "Skipping final destroy... Infrastructure will remain."
+                break
+                ;;
+            esac
+        done
 
         break
         ;;
