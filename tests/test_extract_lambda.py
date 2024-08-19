@@ -12,6 +12,7 @@ from src.extract_lambda import (
     DBConnectionException,
     lambda_handler,
     process_and_upload_tables,
+    retrieve_secrets
 )
 
 
@@ -24,7 +25,7 @@ def mock_config():
         "password": "password",
         "database": "db",
     }
-    with patch("src.extract_lambda.get_config", return_value=env_vars) as mock_config:
+    with patch("src.extract_lambda.retrieve_secrets", return_value=env_vars) as mock_config:
         yield mock_config
 
 
@@ -140,7 +141,7 @@ class TestListExistingS3Files:
             Bucket="extract_bucket",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
-        list_existing_s3_files(client=s3_client)
+        list_existing_s3_files("extract_bucket", client=s3_client)
         assert "The bucket is empty" in caplog.text
 
     def test_error_retrieving_object(self, s3_client, caplog):
@@ -176,9 +177,8 @@ class TestConnectToDatabase:
         assert "Interface error" in caplog.text
 
 
-"""
 class TestProcessAndUploadTables:
-    def test_error_process_and_upload_tables(mock_conn, mock_config, s3_client, caplog):
+    def test_error_process_and_upload_tables(mock_conn, s3_client, caplog):
         logger = logging.getLogger()
         logger.info('Testing now.')
         caplog.set_level(logging.ERROR)
@@ -188,17 +188,17 @@ class TestProcessAndUploadTables:
                     "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = 'Fruits'"]
         return_values = [[['Fruits']],
                         [['Vegetable','Sour','Green'],['Berry','Sweet','Red']],
-                        [['Food_type'],['Flavour'],['Colour']]]
+                        [['Food_type'],['Flavour'],['Colour']]] # why are individual column names in lists
         vals = dict(zip(queries,return_values))
+        # {"SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';": [['Fruits']], 'SELECT * FROM Fruits;': [['Vegetable', 'Sour', 'Green'], ['Berry', 'Sweet', 'Red']], "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = 'Fruits'": [['Food_type'], ['Flavour'], ['Colour']]}
 
-        ####
-        with patch('src.extract_lambda.connect_to_database') as mock_db:
-            mock_db().run.side_effects = return_values
+        with patch('src.extract_lambda.Connection') as mock_db:
+            mock_db().run.side_effect = return_values
             s3_key = 'Fruits/2024/08/15/Fruits_16:46:30.csv'
             existing_files = {s3_key: 'Food_type,Flavour,Colour\nFruit,Sour,Green\nBerry,Sweet,Red'}
-            s3_client.create_bucket(Bucket='extract_bucket', 
+            s3_client.create_bucket(Bucket='test_extract_bucket', 
                         CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'})
+            print(s3_client.list_buckets)
             s3_client.upload_file('tests/dummy_identical.csv', 'extract_bucket', s3_key)
             process_and_upload_tables(mock_db(), existing_files, client=s3_client)
             assert 'No new data.' in caplog.text
-"""
