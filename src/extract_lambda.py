@@ -129,6 +129,16 @@ def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client("s3
     return existing_files
 
 
+def get_latest_timestamp(existing_files):
+    all_datetimes = []
+    for file_name in existing_files.keys():
+        match = re.search(r"\/(.+/).+_(.+)\.csv", file_name)
+        if match:
+            datetime_str = "".join(match.group(1, 2))
+            all_datetimes.append(datetime.strptime(datetime_str, "%Y/%m/%d/%H:%M:%S"))
+    return max(all_datetimes) if all_datetimes else datetime.min
+
+
 def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
     """Creates a list of the tables from a database query and
     then selects everything from each table in individual queries
@@ -137,22 +147,17 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
     to files, or new tables/files it uploads them to the s3 bucket
     """
     load_status = {"updated": [], "no change": []}
-    # Retrieving the latest file timestamp from S3 extract bucket
-    all_datetimes = []
-    for file_names in existing_files.keys():
-        datetime_str_on_s3 = "".join(
-            re.search(r"\/(.+/).+_(.+)\.csv", file_names).group(1, 2)
-        )
-        all_datetimes.append(datetime.strptime(datetime_str_on_s3, "%Y/%m/%d/%H:%M:%S"))
-    latest_timestamp = max(all_datetimes)
+    latest_timestamp = get_latest_timestamp(existing_files)
 
-    # Iterating through tables on the database and retrieving only latest changes vs previous file load
     tables = db.run(
         """
-                    SELECT table_name 
-                    FROM information_schema.tables 
-                    WHERE table_schema='public' AND table_type='BASE TABLE';"""
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema='public'
+        AND table_type='BASE TABLE';
+        """
     )
+
     for table in tables:
         print(tables)
         table_name = table[0]
