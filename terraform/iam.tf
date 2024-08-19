@@ -28,22 +28,35 @@ resource "aws_iam_role" "multi_service_role" {
 ########################################################################
 # S3 SETUP                                                        
 # Description: allows allows retention/tagging/access control settings
-# Lambda IAM Policy for S3 Write
+# Lambda IAM Policy for S3
 ########################################################################
 
 # S3 DEFINE POLICY
 data "aws_iam_policy_document" "s3_data_policy_doc" {
   statement {
+    effect = "Allow"
     actions = [
       "s3:PutObject",
       "s3:PutObjectRetention",
       "s3:PutObjectTagging",
-      "s3:PutObjectAcl"
+      "s3:PutObjectAcl",
+      "s3:ListObjects"
     ]
     resources = [
       "${aws_s3_bucket.extract_bucket.arn}/*",
       "${aws_s3_bucket.transform_bucket.arn}/*",
       "${aws_s3_bucket.lambda_code_bucket.arn}/*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:ListBuckets",
+      "s3:ListAllMyBuckets"
+    ]
+    resources = [
+      "arn:aws:s3:::*",
     ]
   }
 }
