@@ -11,8 +11,30 @@ echo "It should not be used once a proper deployment has been setup."
 echo "Would you like to continue?"
 
 select yn in "Yes" "No"; do
-	case $yn in
-		Yes ) cd ../terraform/; terraform destroy -auto-approve; terraform apply -auto-approve; terraform destroy -auto-approve; break;;
-		No ) exit;;
-	esac
+    case $yn in
+    Yes)
+        cd ../terraform/
+        echo "Would you like to destroy the current infrastructure?"
+        select destroy_1 in "Yes" "No"; do
+            case $destroy_1 in
+            Yes)
+                terraform destroy
+                break
+                ;;
+            No)
+                echo "Skipping initial destroy..."
+                break
+                ;;
+            esac
+        done
+
+        terraform apply -auto-approve
+
+        break
+        ;;
+    No)
+        echo "Operation cancelled..."
+        exit
+        ;;
+    esac
 done
