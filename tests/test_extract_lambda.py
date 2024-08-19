@@ -12,7 +12,7 @@ from src.extract_lambda import (
     DBConnectionException,
     lambda_handler,
     process_and_upload_tables,
-    retrieve_secrets
+    retrieve_secrets,
 )
 
 
@@ -25,7 +25,9 @@ def mock_config():
         "password": "password",
         "database": "db",
     }
-    with patch("src.extract_lambda.retrieve_secrets", return_value=env_vars) as mock_config:
+    with patch(
+        "src.extract_lambda.retrieve_secrets", return_value=env_vars
+    ) as mock_config:
         yield mock_config
 
 
@@ -185,31 +187,35 @@ class TestProcessAndUploadTables:
         queries = [
             "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';",
             "SELECT * FROM Fruits WHERE last_updated > :latest;",
-            "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = 'Fruits';"
+            "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = 'Fruits';",
         ]
         return_values = [
-            [['Fruits']],
+            [["Fruits"]],
             [],  # No new rows with a more recent last_updated timestamp
-            [['Food_type'], ['Flavour'], ['Colour'], ['last_updated']]
+            [["Food_type"], ["Flavour"], ["Colour"], ["last_updated"]],
         ]
         vals = dict(zip(queries, return_values))
 
         # Patch the database connection and set return values for queries
-        with patch('src.extract_lambda.Connection') as mock_db:
+        with patch("src.extract_lambda.Connection") as mock_db:
             mock_db().run.side_effect = return_values
-            s3_key = 'Fruits/2024/08/15/Fruits_16:46:30.csv'
+            s3_key = "Fruits/2024/08/15/Fruits_16:46:30.csv"
             existing_files = {
-                s3_key: 'Food_type,Flavour,Colour,last_updated\nVegetable,Sour,Green,2022-11-03 14:20:49.962\nBerry,Sweet,Red,2022-11-03 14:20:49.962'
+                s3_key: "Food_type,Flavour,Colour,last_updated\nVegetable,Sour,Green,2022-11-03 14:20:49.962\nBerry,Sweet,Red,2022-11-03 14:20:49.962"
             }
 
             # Simulate S3 bucket and file setup
-            s3_client.create_bucket(Bucket='test_extract_bucket', 
-                                    CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'})
-            s3_client.upload_file('tests/dummy_identical.csv', 'test_extract_bucket', s3_key)
-            
+            s3_client.create_bucket(
+                Bucket="test_extract_bucket",
+                CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+            )
+            s3_client.upload_file(
+                "tests/dummy_identical.csv", "test_extract_bucket", s3_key
+            )
+
             # Run the process_and_upload_tables function
             process_and_upload_tables(mock_db(), existing_files, client=s3_client)
             # Assert that the log contains "No new data"
-            assert 'No new data' in caplog.text
+            assert "No new data" in caplog.text
 
     # process and upload tables needs more tests
