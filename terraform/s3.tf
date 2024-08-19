@@ -1,4 +1,7 @@
-### EXTRACT BUCKET SET-UP
+########################
+# EXTRACT BUCKET SETUP #
+########################
+
 resource "aws_s3_bucket" "extract_bucket" {
   bucket_prefix = "${var.s3_extract_bucket_name}-"
 
@@ -7,7 +10,10 @@ resource "aws_s3_bucket" "extract_bucket" {
   }
 }
 
-### TRANSFORM BUCKET SET-UP
+##########################
+# TRANSFORM BUCKET SETUP #
+##########################
+
 resource "aws_s3_bucket" "transform_bucket" {
   bucket_prefix = "${var.s3_transform_bucket_name}-"
   tags = {
@@ -15,7 +21,10 @@ resource "aws_s3_bucket" "transform_bucket" {
   }
 }
 
-### LAMBDA BUCKET
+#######################
+# LAMBDA BUCKET SETUP #
+#######################
+
 resource "aws_s3_bucket" "lambda_code_bucket" {
   bucket_prefix = "${var.s3_code_bucket_name}-"
   tags = {
