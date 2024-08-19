@@ -99,13 +99,9 @@ locals {
 resource "null_resource" "prepare_layer" {
   provisioner "local-exec" {
     command = <<EOT
-      cd ${local.layer_dir}
-      rm -rf python
-      mkdir python
-      pip3 install -r ${local.requirements} -t python/
-      zip -r ${local.layer_zip} python 
+      cd 
     EOT 
-  } #removed / at the end of python in line 99
+  }
 }
 
 resource "aws_s3_object" "lambda_layer_zip" {
