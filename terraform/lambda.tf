@@ -1,3 +1,40 @@
+####################
+# Common Variables #
+####################
+
+locals {
+  layer_dir  = "../"
+  layer_zip  = "layer.zip"
+  layer_name = "lambda_layer"
+  script_dir = "../scripts"
+}
+
+######################
+# Lambda Layer Setup #
+######################
+
+resource "null_resource" "prepare_layer" {
+  provisioner "local-exec" {
+    command = "bash ${local.script_dir}/make_layer_zip.sh"
+  }
+}
+
+resource "aws_s3_object" "lambda_layer_zip" {
+  bucket     = aws_s3_bucket.lambda_code_bucket.id #bucket instead of id
+  key        = "${local.layer_name}/${local.layer_zip}"
+  source     = "${local.layer_dir}/${local.layer_zip}"
+  depends_on = [null_resource.prepare_layer]
+}
+
+resource "aws_lambda_layer_version" "lambda_layer" {
+  layer_name          = local.layer_name
+  compatible_runtimes = ["python3.11"]
+  s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
+  s3_key              = aws_s3_object.lambda_layer_zip.key
+  skip_destroy        = true
+  depends_on          = [aws_s3_object.lambda_layer_zip]
+}
+
 ###########################
 # Extract Lambda Function #
 ###########################
@@ -97,35 +134,3 @@ resource "aws_lambda_function" "load_lambda" {
   depends_on = [aws_s3_object.load_lambda_code]
 }
 
-######################
-# Lambda Layer Setup #
-######################
-
-locals {
-  layer_dir  = "../"
-  layer_zip  = "layer.zip"
-  layer_name = "lambda_layer"
-  script_dir = "../scripts"
-}
-
-resource "null_resource" "prepare_layer" {
-  provisioner "local-exec" {
-    command = "bash ${local.script_dir}/make_layer_zip.sh"
-  }
-}
-
-resource "aws_s3_object" "lambda_layer_zip" {
-  bucket     = aws_s3_bucket.lambda_code_bucket.id #bucket instead of id
-  key        = "${local.layer_name}/${local.layer_zip}"
-  source     = "${local.layer_dir}/${local.layer_zip}"
-  depends_on = [null_resource.prepare_layer]
-}
-
-resource "aws_lambda_layer_version" "lambda_layer" {
-  layer_name          = local.layer_name
-  compatible_runtimes = ["python3.11"]
-  s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
-  s3_key              = aws_s3_object.lambda_layer_zip.key
-  skip_destroy        = true
-  depends_on          = [aws_s3_object.lambda_layer_zip]
-}
