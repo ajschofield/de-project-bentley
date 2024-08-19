@@ -179,29 +179,36 @@ class TestConnectToDatabase:
 
 class TestProcessAndUploadTables:
     def test_error_process_and_upload_tables(mock_conn, s3_client, caplog):
-        logger = logging.getLogger()
-        logger.info('Testing now.')
         caplog.set_level(logging.INFO)
-        ####
+
+        # Mock return values for database queries
         queries = [
             "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';",
-            "SELECT * FROM Fruits;",
-            "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = 'Fruits'"
-            ]
-        return_values = [[['Fruits']],
-                        [['Vegetable','Sour','Green','2022-11-03 14:20:49.962'],['Berry','Sweet','Red','2022-11-03 14:20:49.962']],
-                        [['Food_type'],['Flavour'],['Colour'],['last_updated']]] # why are individual column names in lists
-        vals = dict(zip(queries,return_values))
-        # {"SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';": [['Fruits']], 'SELECT * FROM Fruits;': [['Vegetable', 'Sour', 'Green'], ['Berry', 'Sweet', 'Red']], "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = 'Fruits'": [['Food_type'], ['Flavour'], ['Colour']]}
+            "SELECT * FROM Fruits WHERE last_updated > :latest;",
+            "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where table_name = 'Fruits';"
+        ]
+        return_values = [
+            [['Fruits']],
+            [],  # No new rows with a more recent last_updated timestamp
+            [['Food_type'], ['Flavour'], ['Colour'], ['last_updated']]
+        ]
+        vals = dict(zip(queries, return_values))
 
+        # Patch the database connection and set return values for queries
         with patch('src.extract_lambda.Connection') as mock_db:
             mock_db().run.side_effect = return_values
             s3_key = 'Fruits/2024/08/15/Fruits_16:46:30.csv'
-            existing_files = {s3_key: 'Food_type,Flavour,Colour,last_updated\nVegetable,Sour,Green,2022-11-03 14:20:49.962\nBerry,Sweet,Red, 2022-11-03 14:20:49.962'}
+            existing_files = {
+                s3_key: 'Food_type,Flavour,Colour,last_updated\nVegetable,Sour,Green,2022-11-03 14:20:49.962\nBerry,Sweet,Red,2022-11-03 14:20:49.962'
+            }
+
+            # Simulate S3 bucket and file setup
             s3_client.create_bucket(Bucket='test_extract_bucket', 
-                        CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'})
+                                    CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'})
             s3_client.upload_file('tests/dummy_identical.csv', 'test_extract_bucket', s3_key)
+            
+            # Run the process_and_upload_tables function
             process_and_upload_tables(mock_db(), existing_files, client=s3_client)
-            print('logger', logger.info('hello'))
-            print('our test', caplog.text)
+            
+            # Assert that the log contains "No new data"
             assert 'No new data' in caplog.text
