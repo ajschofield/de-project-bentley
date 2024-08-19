@@ -1,4 +1,7 @@
-# Extract Lambda Function
+###########################
+# Extract Lambda Function #
+###########################
+
 data "archive_file" "extract_lambda_zip" {
   type        = "zip"
   source_file = "${path.module}/../src/extract_lambda.py"
@@ -28,7 +31,10 @@ resource "aws_lambda_function" "extract_lambda" {
   depends_on = [aws_s3_object.extract_lambda_code]
 }
 
-# Transform Lambda Function
+#############################
+# Transform Lambda Function #
+#############################
+
 data "archive_file" "transform_lambda_zip" {
   type        = "zip"
   source_file = "${path.module}/../src/transform_lambda.py"
@@ -58,7 +64,10 @@ resource "aws_lambda_function" "transform_lambda" {
   depends_on = [aws_s3_object.transform_lambda_code]
 }
 
-# Load Lambda Function
+########################
+# Load Lambda Function #
+########################
+
 data "archive_file" "load_lambda_zip" {
   type        = "zip"
   source_file = "${path.module}/../src/load_lambda.py"
@@ -88,7 +97,10 @@ resource "aws_lambda_function" "load_lambda" {
   depends_on = [aws_s3_object.load_lambda_code]
 }
 
-# Lambda Layer Specification
+######################
+# Lambda Layer Setup #
+######################
+
 locals {
   layer_dir  = "../"
   layer_zip  = "layer.zip"
