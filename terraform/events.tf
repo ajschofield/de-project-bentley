@@ -33,7 +33,8 @@ resource "aws_lambda_permission" "allow_eventbridge" {
   source_arn    = aws_cloudwatch_event_rule.lambda_trigger.arn
 
   lifecycle {
-    replace_triggered_by = [random_string.suffix]
+    create_before_destroy = true
+    replace_triggered_by  = [random_string.suffix]
   }
 }
 
@@ -49,7 +50,8 @@ resource "aws_lambda_permission" "allow_s3_ingestion" {
   source_arn    = aws_s3_bucket.extract_bucket.arn
 
   lifecycle {
-    replace_triggered_by = [random_string.suffix]
+    create_before_destroy = true
+    replace_triggered_by  = [random_string.suffix]
   }
 }
 
@@ -77,7 +79,8 @@ resource "aws_lambda_permission" "allow_s3_transform_bucket" {
   source_arn    = aws_s3_bucket.transform_bucket.arn
 
   lifecycle {
-    replace_triggered_by = [random_string.suffix]
+    create_before_destroy = true
+    replace_triggered_by  = [random_string.suffix]
   }
 }
 
