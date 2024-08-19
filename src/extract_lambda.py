@@ -66,6 +66,9 @@ def retrieve_secrets():
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
     except ClientError as e:
         raise e
+    except KeyError:
+        logger.error(f"Secret {secret_name} does not contain a SecretString")
+        raise ValueError(f"Secret {secret_name} does not contain a SecretString")
 
     return get_secret_value_response["SecretString"]
 
