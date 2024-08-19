@@ -149,15 +149,9 @@ def stream_to_s3(table_name, rows, column_names, s3_client, bucket_name, s3_key)
     for row in rows:
         csv_writer.writerow(row)
 
-        if csv_buffer.tell() > 5 * 1024 * 1024:
-            csv_buffer.seek(0)
-            s3_client.upload_fileobj(csv_buffer, bucket_name, s3_key)
-            csv_buffer.truncate(0)
-            csv_buffer.seek(0)
+    csv_buffer.seek(0)
 
-    if csv_buffer.tell() > 0:
-        csv_buffer.seek(0)
-        s3_client.upload_fileobj(csv_buffer, bucket_name, s3_key)
+    s3_client.upload_fileobj(csv_buffer, bucket_name, s3_key)
 
 
 def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
@@ -190,13 +184,14 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
                 col_name[0]
                 for col_name in db.run(
                     """SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS 
-                                   WHERE table_name = :table ;""",
+                       WHERE table_name = :table ;""",
                     table=table_name,
                 )
             ]
 
-            s3_key = datetime.strftime(
-                datetime.today(), f"{table_name}/%Y/%m/%d/{table_name}_%H:%M:%S.csv"
+            s3_key = (
+                f"{table_name}/{datetime.now().strftime('%Y/%m/%d')}/"
+                f"{table_name}_{datetime.now().strftime('%H:%M:%S')}.csv"
             )
 
             try:
