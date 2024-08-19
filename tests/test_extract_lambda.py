@@ -58,7 +58,7 @@ def s3_mock_bucket(s3_client):
 
 
 class TestLambdaHandler:
-    def test_lambda_handler_files_processed_and_uploaded_successfully(self, mocker):
+    def test_files_processed_and_uploaded_successfully(self, mocker):
         mock_db = MagicMock()
         mock_db.run.side_effect = [
             [["Fruits"]],
@@ -93,7 +93,7 @@ class TestLambdaHandler:
             mock_process_and_upload_tables.assert_called_once_with(mock_db, {})
             mock_db.close.assert_called_once()
 
-    def test_lambda_handler_no_changes_detected_no_files_uploaded(self, mocker):
+    def test_no_changes_detected_no_files_uploaded(self, mocker):
         mock_db = MagicMock()
         mock_db.run.side_effect = [
             [["Fruits"]],
@@ -125,7 +125,7 @@ class TestLambdaHandler:
             mock_process_and_upload_tables.assert_called_once_with(mock_db, {})
             mock_db.close.assert_called_once()
 
-    def test_lambda_handler_exception_error(self, mocker):
+    def test_exception_error(self, mocker):
         with patch(
             "src.extract_lambda.connect_to_database",
             side_effect=Exception("Database connection error"),
