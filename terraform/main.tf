@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/archive"
       version = "~>2.5.0"
     }
+    random_string = {
+      source  = "hashicorp/random"
+      version = "~>3.6.2"
+    }
   }
   backend "s3" {
     bucket  = "bentley-project-secrets"
