@@ -1,5 +1,7 @@
 version = 1
 
+test_patterns = ["tests/**"]
+
 [[analyzers]]
 name = "sql"
 
@@ -23,5 +25,3 @@ name = "autopep8"
 
 [[transformers]]
 name = "ruff"
-
-
