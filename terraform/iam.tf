@@ -169,3 +169,30 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_events_attachment" {
   role       = aws_iam_role.multi_service_role.name
   policy_arn = aws_iam_policy.cloudwatch_events_policy.arn
 }
+
+#########################
+# SECRETS MANAGER SETUP #
+#########################
+
+# Policy Doc
+data "aws_iam_policy_document" "secrets_manager_policy_doc" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = []
+  }
+}
+
+# SM Policy Resource
+resource "aws_iam_policy" "secrets_manager_policy" {
+  name   = "secrets_manager_policy"
+  policy = data.aws_iam_policy_document.secrets_manager_policy_doc.json
+}
+
+# Attach SM Policy to Role
+resource "aws_iam_role_policy_attachment" "secrets_manager_attachment" {
+  role       = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.secrets_manager_policy.arn
+}
