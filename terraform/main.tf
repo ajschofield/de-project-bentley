@@ -13,7 +13,7 @@ terraform {
       source  = "hashicorp/archive"
       version = "~>2.5.0"
     }
-    random_string = {
+    random = {
       source  = "hashicorp/random"
       version = "~>3.6.2"
     }
