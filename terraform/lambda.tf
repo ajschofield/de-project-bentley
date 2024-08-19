@@ -90,11 +90,10 @@ resource "aws_lambda_function" "load_lambda" {
 
 # Lambda Layer Specification
 locals {
-  layer_dir    = "../"
-  requirements = "requirements.txt"
-  layer_zip    = "layer.zip"
-  layer_name   = "lambda_layer"
-  script_dir   = "../scripts"
+  layer_dir  = "../"
+  layer_zip  = "layer.zip"
+  layer_name = "lambda_layer"
+  script_dir = "../scripts"
 }
 
 resource "null_resource" "prepare_layer" {
