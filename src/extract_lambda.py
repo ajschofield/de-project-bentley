@@ -90,6 +90,7 @@ def extract_bucket(client=boto3.client("s3")):
     extract_bucket_filter = [
         bucket["Name"] for bucket in response["Buckets"] if "extract" in bucket["Name"]
     ]
+
     return extract_bucket_filter[0]
 
 
