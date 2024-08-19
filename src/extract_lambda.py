@@ -147,12 +147,13 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
                     WHERE table_schema='public' AND table_type='BASE TABLE';"""
     )
     for table in tables:
+        print(tables)
         table_name = table[0]
         rows = db.run(
             f"SELECT * FROM {identifier(table_name)} " "WHERE last_updated >= :latest;",
             latest={datetime.strftime(latest_timestamp, "%H-%m-%d %H:%M:%S")},
         )
-
+        print('rows', rows)
         # Creating a temporary file path and writing the column name to it followed by each row of data
         if rows:
             csv_file_path = f"/tmp/{table_name}.csv"
@@ -183,6 +184,6 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
         else:
             load_status["no change"].append(table_name)
             logger.info(
-                f"No new data in {table_name} name. Latest data retrieved is from {latest_timestamp}."
+                f"No new data"
             )
     return load_status
