@@ -15,9 +15,10 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "bentley-project-secrets"
-    key    = "bentley-project/terraform.tfstate"
-    region = "eu-west-2"
+    bucket  = "bentley-project-secrets"
+    key     = "bentley-project/terraform.tfstate"
+    region  = "eu-west-2"
+    encrypt = true
   }
 }
 
