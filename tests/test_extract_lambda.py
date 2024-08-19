@@ -55,6 +55,7 @@ def s3_mock_bucket(s3_client):
     )
     return bucket
 
+
 class TestLambdaHandler:
     def test_lambda_handler_files_processed_and_uploaded_successfully(self, mocker):
         mock_db = MagicMock()
@@ -137,6 +138,7 @@ class TestLambdaHandler:
             assert json.loads(response["body"]) == "Internal server error."
             mock_list_existing_s3_files.assert_not_called()
             mock_process_and_upload_tables.assert_not_called()
+
 
 class TestListExistingS3Files:
     def test_error_if_no_bucket(self, s3_client, caplog):
