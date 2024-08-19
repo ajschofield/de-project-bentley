@@ -28,6 +28,6 @@ resource "aws_s3_bucket" "transform_bucket" {
 resource "aws_s3_bucket" "lambda_code_bucket" {
   bucket_prefix = "${var.s3_code_bucket_name}-"
   tags = {
-    Name = "Load Bucket"
+    Name = "Lambda Bucket"
   }
 }
