@@ -39,14 +39,13 @@ def lambda_handler(event, context):
                 "statusCode": 200,
                 "body": json.dumps("No changes detected, no CSV files were uploaded."),
             }
-        else:
-            return {
-                "statusCode": 200,
-                "body": json.dumps(
-                    f"""CSV files processed for {', '.join(any_changes['updated'])} and uploaded successfully.{
-                    'The following tables were not updated: '+', '.join(any_changes['no change']) if any_changes['no change'] else ''}"""
-                ),
-            }
+        return {
+            "statusCode": 200,
+            "body": json.dumps(
+                f"""CSV files processed for {', '.join(any_changes['updated'])} and uploaded successfully.{
+                'The following tables were not updated: '+', '.join(any_changes['no change']) if any_changes['no change'] else ''}"""
+            ),
+        }
     except Exception as e:
         logger.error(f"Error: {e}")
         return {"statusCode": 500, "body": json.dumps("Internal server error.")}
