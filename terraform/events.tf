@@ -1,3 +1,7 @@
+#################
+# Random String #
+#################
+
 resource "random_string" "eventbridge_suffix" {
   length  = 8
   special = false
@@ -15,6 +19,10 @@ resource "random_string" "s3_transform_suffix" {
   special = false
   upper   = false
 }
+
+#############################
+# EventBridge Configuration #
+#############################
 
 resource "aws_cloudwatch_event_rule" "lambda_trigger" {
   name                = "lambda-scheduled-trigger"
@@ -41,7 +49,10 @@ resource "aws_lambda_permission" "allow_eventbridge" {
   }
 }
 
-# below is step function 1
+########################################
+# S3 Extract Bucket Notification Setup #
+########################################
+
 resource "aws_lambda_permission" "allow_s3_ingestion" {
   statement_id  = "AllowS3InvokeLambdaTransform${random_string.s3_ingestion_suffix.result}"
   action        = "lambda:InvokeFunction"
@@ -65,6 +76,10 @@ resource "aws_s3_bucket_notification" "extract_bucket_notification" {
 
   depends_on = [aws_lambda_permission.allow_s3_ingestion]
 }
+
+##########################################
+# S3 Transform Bucket Notification Setup #
+##########################################
 
 resource "aws_lambda_permission" "allow_s3_transform_bucket" {
   statement_id  = "AllowS3InvokeLambdaTransform${random_string.s3_transform_suffix.result}"
