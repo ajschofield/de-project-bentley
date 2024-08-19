@@ -3,10 +3,11 @@
 ####################
 
 locals {
-  layer_dir  = "../"
-  layer_zip  = "layer.zip"
-  layer_name = "lambda_layer"
-  script_dir = "../scripts"
+  layer_dir      = "../"
+  layer_zip      = "layer.zip"
+  layer_name     = "lambda_layer"
+  script_dir     = "../scripts"
+  layer_zip_path = "${local.layer_dir}/${local.layer_zip}"
 }
 
 ######################
@@ -14,8 +15,13 @@ locals {
 ######################
 
 resource "null_resource" "prepare_layer" {
+
+  triggers = {
+    layer_zip_exists = fileexists(local.layer_zip_path) ? "exists" : "not_exists"
+  }
+
   provisioner "local-exec" {
-    command = "bash ${local.script_dir}/make_layer_zip.sh"
+    command = "if [ ! -f ${local.layer_zip_path} ]; then bash ${local.script_dir}/make_layer_zip.sh; fi"
   }
 }
 
