@@ -209,6 +209,7 @@ class TestProcessAndUploadTables:
             
             # Run the process_and_upload_tables function
             process_and_upload_tables(mock_db(), existing_files, client=s3_client)
-            
             # Assert that the log contains "No new data"
             assert 'No new data' in caplog.text
+
+    # process and upload tables needs more tests
