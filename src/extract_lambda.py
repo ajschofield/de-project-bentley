@@ -55,17 +55,20 @@ def lambda_handler(event, context):
             db.close()
 
 
-def retrieve_secrets(
-    sm_client=boto3.client("secretsmanager"), secret_name="bentley-secrets"
-):
+def retrieve_secrets():
+    secret_name = "bentley-secrets"
+    region_name = "eu-west-2"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager", region_name=region_name)
+
     try:
-        response = sm_client.get_secret_value(SecretId=secret_name)
-        if "SecretString" in response:
-            secret = json.loads(response["SecretString"])
-            return secret
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
     except ClientError as e:
-        logger.error(f"Could not retrieve secrets: {e}")
         raise e
+
+    return get_secret_value_response["SecretString"]
 
 
 def connect_to_database() -> Connection:
