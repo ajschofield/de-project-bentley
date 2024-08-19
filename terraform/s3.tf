@@ -10,6 +10,13 @@ resource "aws_s3_bucket" "extract_bucket" {
   }
 }
 
+resource "aws_s3_bucket_versioning" "extract_bucket_versioning" {
+  bucket = aws_s3_bucket.extract_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 ##########################
 # TRANSFORM BUCKET SETUP #
 ##########################
@@ -18,6 +25,14 @@ resource "aws_s3_bucket" "transform_bucket" {
   bucket_prefix = "${var.s3_transform_bucket_name}-"
   tags = {
     Name = "Transform Bucket"
+  }
+}
+
+
+resource "aws_s3_bucket_versioning" "transform_bucket_versioning" {
+  bucket = aws_s3_bucket.transform_bucket.id
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
