@@ -180,6 +180,7 @@ class TestConnectToDatabase:
             connect_to_database()
         assert "Interface error" in caplog.text
 
+
 class TestProcessAndUploadTables:
     def test_error_process_and_upload_tables(mock_conn, s3_client, caplog):
         caplog.set_level(logging.INFO)
@@ -218,4 +219,3 @@ class TestProcessAndUploadTables:
             process_and_upload_tables(mock_db(), existing_files, client=s3_client)
             # Assert that the log contains "No new data"
             assert "No new data" in caplog.text
-
