@@ -12,8 +12,3 @@ resource "aws_s3_bucket" "transform_bucket" {
 resource "aws_s3_bucket" "lambda_code_bucket" {
   bucket_prefix = "${var.s3_code_bucket_name}-"
 }
-
-### LAMBDA LAYER BUCKET
-resource "aws_s3_bucket" "lambda_layer_bucket" {
-  bucket_prefix = "lambda-layer-dev-"
-}
