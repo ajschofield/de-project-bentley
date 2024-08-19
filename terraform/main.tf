@@ -25,11 +25,11 @@ provider "aws" {
   region = "eu-west-2"
   default_tags {
     tags = {
-      ProjectName = "Terrific-Totes"
-      Team        = "Team-Bentley"
-      Environment = "Dev"
-      GitHubRepo  = "de-project-bentley"
+      ProjectName = var.project_name
+      Environment = var.environment
       ManagedBy   = "Terraform"
+      GitHubRepo  = var.github_repo
+      Team        = var.team_name
     }
   }
 }

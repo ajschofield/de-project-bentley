@@ -33,6 +33,26 @@ variable "project_name" {
   default = "tt"
 }
 
+variable "aws_region" {
+  type    = string
+  default = "eu-west-2"
+}
+
+variable "environment" {
+  type    = string
+  default = "dev"
+}
+
+variable "github_repo" {
+  type    = string
+  default = "de-project-bentley"
+}
+
+variable "team_name" {
+  type    = string
+  default = "Team-Bentley"
+}
+
 data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
