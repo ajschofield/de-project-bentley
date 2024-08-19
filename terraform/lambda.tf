@@ -90,27 +90,21 @@ resource "aws_lambda_function" "load_lambda" {
 
 # Lambda Layer Specification
 locals {
-  layer_dir    = "lambda_layer"
-  requirements = "requirements.txt"
-  layer_zip    = "layer.zip"
-  layer_name   = "lambda_layer_dev"
+  layer_dir  = "../"
+  layer_zip  = "layer.zip"
+  layer_name = "lambda_layer"
+  script_dir = "../scripts"
 }
 
 resource "null_resource" "prepare_layer" {
   provisioner "local-exec" {
-    command = <<EOT
-      cd ${local.layer_dir}
-      rm -rf python
-      mkdir python
-      pip3 install -r ${local.requirements} -t python/
-      zip -r ${local.layer_zip} python 
-    EOT 
-  } #removed / at the end of python in line 99
+    command = "bash ${local.script_dir}/make_layer_zip.sh"
+  }
 }
 
 resource "aws_s3_object" "lambda_layer_zip" {
   bucket     = aws_s3_bucket.lambda_code_bucket.id #bucket instead of id
-  key        = "lambda_layer/${local.layer_name}/${local.layer_zip}"
+  key        = "${local.layer_name}/${local.layer_zip}"
   source     = "${local.layer_dir}/${local.layer_zip}"
   depends_on = [null_resource.prepare_layer]
 }
@@ -118,7 +112,7 @@ resource "aws_s3_object" "lambda_layer_zip" {
 resource "aws_lambda_layer_version" "lambda_layer" {
   layer_name          = local.layer_name
   compatible_runtimes = ["python3.11"]
-  s3_bucket           = aws_s3_bucket.lambda_layer_bucket.id #bucket instead of id
+  s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
   s3_key              = aws_s3_object.lambda_layer_zip.key
   skip_destroy        = true
   depends_on          = [aws_s3_object.lambda_layer_zip]
