@@ -8,7 +8,7 @@ from datetime import datetime
 import re
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # DB Exception class
