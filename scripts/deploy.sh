@@ -6,6 +6,9 @@
 # Exit if any command has a non-zero status
 set -e
 
+# Change current directory to terraform folder at the start
+cd ../terraform/
+
 echo "WARNING: This script will destroy any infrastructure for testing."
 echo "It should not be used once a proper deployment has been setup."
 echo "Would you like to continue?"
@@ -13,7 +16,6 @@ echo "Would you like to continue?"
 select yn in "Yes" "No"; do
     case $yn in
     Yes)
-        cd ../terraform/
         echo "Would you like to destroy the current infrastructure?"
         select destroy_1 in "Yes" "No"; do
             case $destroy_1 in
