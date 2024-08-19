@@ -32,6 +32,7 @@ resource "aws_s3_object" "lambda_layer_zip" {
   key        = "${local.layer_name}/${local.layer_zip}"
   source     = "${local.layer_dir}/${local.layer_zip}"
   depends_on = [null_resource.prepare_layer]
+  etag       = fileexists(local.layer_zip_path) ? filemd5(local.layer_zip_path) : null
 }
 
 resource "aws_lambda_layer_version" "lambda_layer" {
@@ -39,6 +40,7 @@ resource "aws_lambda_layer_version" "lambda_layer" {
   compatible_runtimes = ["python3.11"]
   s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
   s3_key              = aws_s3_object.lambda_layer_zip.key
+  source_code_hash    = fileexists(local.layer_zip_path) ? filebase64sha256(local.layer_zip_path) : null
   skip_destroy        = true
   depends_on          = [aws_s3_object.lambda_layer_zip]
 }
