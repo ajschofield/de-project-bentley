@@ -90,17 +90,16 @@ resource "aws_lambda_function" "load_lambda" {
 
 # Lambda Layer Specification
 locals {
-  layer_dir    = "lambda_layer"
+  layer_dir    = "../"
   requirements = "requirements.txt"
   layer_zip    = "layer.zip"
   layer_name   = "lambda_layer_dev"
+  script_dir   = "../scripts"
 }
 
 resource "null_resource" "prepare_layer" {
   provisioner "local-exec" {
-    command = <<EOT
-      cd 
-    EOT 
+    command = "bash ${local.script_dir}/make_layer_zip.sh"
   }
 }
 
