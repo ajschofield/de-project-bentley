@@ -108,7 +108,8 @@ class TestLambdaHandler:
 
         with patch("src.extract_lambda.connect_to_database", return_value=mock_db):
             mock_process_and_upload_tables = mocker.patch(
-                "src.extract_lambda.process_and_upload_tables", return_value=False
+                "src.extract_lambda.process_and_upload_tables",
+                return_value={"updated": [], "no change": ["Fruits"]},
             )
             mock_list_existing_s3_files = mocker.patch(
                 "src.extract_lambda.list_existing_s3_files", return_value={}
