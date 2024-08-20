@@ -15,6 +15,7 @@ from src.extract_lambda import (
     lambda_handler,
     process_and_upload_tables,
     retrieve_secrets,
+    extract_bucket
 )
 
 
@@ -146,6 +147,31 @@ class TestLambdaHandler:
             mock_process_and_upload_tables.assert_not_called()
 
 
+class TestExtractBucket:
+    def test_extract_bucket_returns_bucket_name(self, s3_client, s3_mock_bucket):
+        result = extract_bucket(s3_client)
+        assert result == "extract_bucket"
+
+    def test_bucket_returns_first_bucket(self, s3_client):
+        bucket1 = s3_client.create_bucket(
+            Bucket='bucket1',
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        result = extract_bucket(s3_client)
+        assert result == "extract_bucket"
+
+    def test_returns_index_error_if_no_buckets(self, s3_client):
+        s3_client.delete_bucket(
+            Bucket="extract_bucket"
+        )
+        s3_client.delete_bucket(
+            Bucket="bucket1"
+        )
+
+        with pytest.raises(IndexError, match="list index out of range"):
+            extract_bucket(s3_client)
+
+    
 class TestListExistingS3Files:
     def test_error_if_no_bucket(self, s3_client, caplog):
         logger = logging.getLogger()
@@ -165,7 +191,6 @@ class TestListExistingS3Files:
 
 
 class TestConnectToDatabase:
-    # had mock_config in param
     def test_connect_to_database(mock_conn, mock_config):
         with patch("src.extract_lambda.Connection", autospec=True) as mock_conn:
             connect_to_database()
@@ -187,7 +212,7 @@ class TestConnectToDatabase:
 
 
 class TestProcessAndUploadTables:
-    def test_error_process_and_upload_tables(mock_conn, s3_client, caplog):
+    def test_error_process_and_upload_tables(self, mock_conn, s3_client, caplog):
         caplog.set_level(logging.INFO)
 
         # Mock return values for database queries
