@@ -165,7 +165,7 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
         """
         SELECT table_name
         FROM information_schema.tables
-        WHERE table_schema='public'
+        WHERE table_schema='public' AND table_name != '_prisma_migrations'
         AND table_type='BASE TABLE';
         """
     )
@@ -176,16 +176,18 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
             SELECT * FROM {identifier(table_name)}
             WHERE last_updated >= :latest;
             """
-        logger.info(f"Processing table: {table_name}")
-        rows = db.run(
-            base_query,
-            latest={
+        latest = (
+            {
                 datetime.strftime(
                     latest_timestamp if latest_timestamp else datetime(1990, 1, 1),
                     "%Y-%m-%d %H:%M:%S",
                 )
             },
         )
+        logger.info(f"Processing table: {table_name}")
+        logger.info(f"Latest timestamp: {latest[0]}")
+        rows = db.run(base_query, latest=latest)
+        logger.info(f"Rows: {rows}")
         # Creating a temporary file path and writing the column name to it followed by each row of data
         if rows:
             csv_file_path = f"/tmp/{table_name}.csv"
