@@ -12,7 +12,6 @@ jobs:
   validate-and-test:
     name: Validate Terraform and Run Tests
     runs-on: ubuntu-latest
-    environment: testing
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
