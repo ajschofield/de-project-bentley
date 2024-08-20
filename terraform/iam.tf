@@ -40,7 +40,8 @@ data "aws_iam_policy_document" "s3_data_policy_doc" {
       "s3:PutObjectRetention",
       "s3:PutObjectTagging",
       "s3:PutObjectAcl",
-      "s3:ListObjects"
+      "s3:ListObjects",
+      "s3:ListObjectsV2"
     ]
     resources = [
       "${aws_s3_bucket.extract_bucket.arn}/*",
