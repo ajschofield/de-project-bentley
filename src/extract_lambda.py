@@ -124,6 +124,7 @@ def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client("s3
                     logger.error(f"Error retrieving S3 object {s3_key}: {e}")
         else:
             logger.error("The bucket is empty")
+            return None
 
     except ClientError as e:
         logger.error(f"Error listing S3 objects: {e}")
@@ -132,13 +133,18 @@ def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client("s3
 
 
 def get_latest_timestamp(existing_files):
-    all_datetimes = []
-    for file_name in existing_files.keys():
-        match = re.search(r"\/(.+/).+_(.+)\.csv", file_name)
-        if match:
-            datetime_str = "".join(match.group(1, 2))
-            all_datetimes.append(datetime.strptime(datetime_str, "%Y/%m/%d/%H:%M:%S"))
-    return max(all_datetimes) if all_datetimes else datetime.min
+    if existing_files:
+        all_datetimes = []
+        for file_name in existing_files.keys():
+            match = re.search(r"\/(.+/).+_(.+)\.csv", file_name)
+            if match:
+                datetime_str = "".join(match.group(1, 2))
+                all_datetimes.append(
+                    datetime.strptime(datetime_str, "%Y/%m/%d/%H:%M:%S")
+                )
+        return max(all_datetimes) if all_datetimes else datetime.min
+
+    return existing_files
 
 
 def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
@@ -163,8 +169,16 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
     for table in tables:
         table_name = table[0]
         rows = db.run(
-            f"SELECT * FROM {identifier(table_name)} WHERE last_updated >= :latest;",
-            latest={datetime.strftime(latest_timestamp, "%Y-%m-%d %H:%M:%S")},
+            f"""
+            SELECT * FROM {identifier(table_name)}
+            WHERE last_updated >= :latest;
+            """,
+            latest={
+                datetime.strftime(
+                    latest_timestamp if latest_timestamp else datetime(1990, 1, 1),
+                    "%Y-%m-%d %H:%M:%S",
+                )
+            },
         )
         # Creating a temporary file path and writing the column name to it followed by each row of data
         if rows:
