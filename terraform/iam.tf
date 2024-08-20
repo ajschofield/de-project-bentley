@@ -41,7 +41,8 @@ data "aws_iam_policy_document" "s3_data_policy_doc" {
       "s3:PutObjectTagging",
       "s3:PutObjectAcl",
       "s3:ListObjects",
-      "s3:ListObjectsV2"
+      "s3:ListObjectsV2",
+      "s3:GetObject"
     ]
     resources = [
       "${aws_s3_bucket.extract_bucket.arn}/*",
@@ -53,8 +54,10 @@ data "aws_iam_policy_document" "s3_data_policy_doc" {
   statement {
     effect = "Allow"
     actions = [
-      "s3:ListBuckets",
-      "s3:ListAllMyBuckets"
+      "s3:ListBucket",
+      "s3:ListAllMyBuckets",
+      "s3:ListObjectsV2",
+      "s3:ListObjects"
     ]
     resources = [
       "arn:aws:s3:::*",
