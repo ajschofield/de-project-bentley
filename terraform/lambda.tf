@@ -70,6 +70,7 @@ resource "aws_lambda_function" "extract_lambda" {
   handler          = "extract_lambda.lambda_handler"
   runtime          = "python3.11"
   source_code_hash = data.archive_file.extract_lambda_zip.output_base64sha256
+  timeout          = 180
 
   lifecycle {
     create_before_destroy = true
@@ -103,6 +104,7 @@ resource "aws_lambda_function" "transform_lambda" {
   handler          = "transform_lambda.lambda_handler"
   runtime          = "python3.11"
   source_code_hash = data.archive_file.transform_lambda_zip.output_base64sha256
+  timeout          = 180
 
   lifecycle {
     create_before_destroy = true
@@ -136,6 +138,7 @@ resource "aws_lambda_function" "load_lambda" {
   handler          = "load_lambda.lambda_handler"
   runtime          = "python3.11"
   source_code_hash = data.archive_file.load_lambda_zip.output_base64sha256
+  timeout          = 180
 
   lifecycle {
     create_before_destroy = true
