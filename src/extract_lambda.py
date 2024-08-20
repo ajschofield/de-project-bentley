@@ -10,8 +10,12 @@ from botocore.exceptions import ClientError
 from pg8000.native import Connection, InterfaceError, identifier
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
+logging.basicConfig(
+    format="{asctime} - {levelname} - {message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M",
+    level=logging.INFO,
+)
 # DB Exception class
 
 
@@ -168,11 +172,13 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
 
     for table in tables:
         table_name = table[0]
-        rows = db.run(
-            f"""
+        base_query = f"""
             SELECT * FROM {identifier(table_name)}
             WHERE last_updated >= :latest;
-            """,
+            """
+        logger.info(f"Processing table: {table_name}")
+        rows = db.run(
+            base_query,
             latest={
                 datetime.strftime(
                     latest_timestamp if latest_timestamp else datetime(1990, 1, 1),
