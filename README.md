@@ -21,7 +21,7 @@ The solution showcases our skills in:
 - Amazon Web Services (AWS)
 - Agile methodologies
 
-# Main Objective
+# Main Objectives
 
 Our goal is to create a reliable ETL (Extract, Transform, Load) pipeline that
 can:
