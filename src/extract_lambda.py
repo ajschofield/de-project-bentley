@@ -16,7 +16,6 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M",
     level=logging.INFO,
 )
-# DB Exception class
 
 
 class DBConnectionException(Exception):
@@ -187,7 +186,7 @@ def process_and_upload_tables(db, existing_files, client=boto3.client("s3")):
         logger.info(f"Processing table: {table_name}")
         logger.info(f"Latest timestamp: {latest[0]}")
         rows = db.run(base_query, latest=latest)
-        logger.info(f"Rows: {rows}")
+        logger.debug(f"Rows: {rows}")
         # Creating a temporary file path and writing the column name to it followed by each row of data
         if rows:
             csv_file_path = f"/tmp/{table_name}.csv"
