@@ -78,7 +78,7 @@ def retrieve_secrets():
 
 def connect_to_database() -> Connection:
     try:
-        secrets = retrieve_secrets()
+        secrets = json.loads(retrieve_secrets())
         host = secrets["host"]
         port = secrets["port"]
         user = secrets["user"]
