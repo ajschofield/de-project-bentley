@@ -15,7 +15,7 @@ from src.extract_lambda import (
     lambda_handler,
     process_and_upload_tables,
     retrieve_secrets,
-    extract_bucket
+    extract_bucket,
 )
 
 
@@ -154,24 +154,20 @@ class TestExtractBucket:
 
     def test_bucket_returns_first_bucket(self, s3_client):
         bucket1 = s3_client.create_bucket(
-            Bucket='bucket1',
+            Bucket="bucket1",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         result = extract_bucket(s3_client)
         assert result == "extract_bucket"
 
     def test_returns_index_error_if_no_buckets(self, s3_client):
-        s3_client.delete_bucket(
-            Bucket="extract_bucket"
-        )
-        s3_client.delete_bucket(
-            Bucket="bucket1"
-        )
+        s3_client.delete_bucket(Bucket="extract_bucket")
+        s3_client.delete_bucket(Bucket="bucket1")
 
         with pytest.raises(IndexError, match="list index out of range"):
             extract_bucket(s3_client)
 
-    
+
 class TestListExistingS3Files:
     def test_error_if_no_bucket(self, s3_client, caplog):
         logger = logging.getLogger()
