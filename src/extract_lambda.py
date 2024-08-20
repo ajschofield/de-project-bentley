@@ -10,12 +10,15 @@ from botocore.exceptions import ClientError
 from pg8000.native import Connection, InterfaceError, identifier
 
 logger = logging.getLogger(__name__)
+
 logging.basicConfig(
     format="{asctime} - {levelname} - {message}",
     style="{",
     datefmt="%Y-%m-%d %H:%M",
-    level=logging.INFO,
+    level=logging.DEBUG,
 )
+
+logging.getLogger("botocore").setLevel(logging.WARNING)
 
 
 class DBConnectionException(Exception):
@@ -110,7 +113,7 @@ def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client("s3
     results of listing the contents of the s3 bucket, then
     returns the populated dictionary
     """
-
+    logging.info("Listing existing S3 files")
     existing_files = {}
 
     try:
