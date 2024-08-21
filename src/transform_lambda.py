@@ -1,8 +1,6 @@
 import json
 import boto3
 import re
-import io
-from io import StringIO
 import pandas as pd
 
 
@@ -35,3 +33,5 @@ def read_from_s3_subfolder_to_df(tables, bucket, client=boto3.client("s3")):
         list_of_df = [pd.read_csv(key) for key in list_of_keys]
         table_dfs[table] = pd.concat(list_of_df)
     return table_dfs
+
+

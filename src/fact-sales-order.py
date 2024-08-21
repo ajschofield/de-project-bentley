@@ -69,7 +69,7 @@ counterparty_address = pd.merge(
     df_address,
     left_on="legal_address_id",
     right_on="address_id",
-    how="outer",
+    how="outer"
 )
 counterparty_address.rename(
     columns={
