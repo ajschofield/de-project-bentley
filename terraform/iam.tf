@@ -28,22 +28,39 @@ resource "aws_iam_role" "multi_service_role" {
 ########################################################################
 # S3 SETUP                                                        
 # Description: allows allows retention/tagging/access control settings
-# Lambda IAM Policy for S3 Write
+# Lambda IAM Policy for S3
 ########################################################################
 
 # S3 DEFINE POLICY
 data "aws_iam_policy_document" "s3_data_policy_doc" {
   statement {
+    effect = "Allow"
     actions = [
       "s3:PutObject",
       "s3:PutObjectRetention",
       "s3:PutObjectTagging",
-      "s3:PutObjectAcl"
+      "s3:PutObjectAcl",
+      "s3:ListObjects",
+      "s3:ListObjectsV2",
+      "s3:GetObject"
     ]
     resources = [
       "${aws_s3_bucket.extract_bucket.arn}/*",
       "${aws_s3_bucket.transform_bucket.arn}/*",
       "${aws_s3_bucket.lambda_code_bucket.arn}/*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket",
+      "s3:ListAllMyBuckets",
+      "s3:ListObjectsV2",
+      "s3:ListObjects"
+    ]
+    resources = [
+      "arn:aws:s3:::*",
     ]
   }
 }
@@ -155,4 +172,31 @@ resource "aws_iam_policy" "cloudwatch_events_policy" {
 resource "aws_iam_role_policy_attachment" "cloudwatch_events_attachment" {
   role       = aws_iam_role.multi_service_role.name
   policy_arn = aws_iam_policy.cloudwatch_events_policy.arn
+}
+
+#########################
+# SECRETS MANAGER SETUP #
+#########################
+
+# Policy Doc
+data "aws_iam_policy_document" "secrets_manager_policy_doc" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = ["arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:bentley-secrets-Na0yc8"]
+  }
+}
+
+# SM Policy Resource
+resource "aws_iam_policy" "secrets_manager_policy" {
+  name   = "secrets_manager_policy"
+  policy = data.aws_iam_policy_document.secrets_manager_policy_doc.json
+}
+
+# Attach SM Policy to Role
+resource "aws_iam_role_policy_attachment" "secrets_manager_attachment" {
+  role       = aws_iam_role.multi_service_role.name
+  policy_arn = aws_iam_policy.secrets_manager_policy.arn
 }

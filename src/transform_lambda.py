@@ -1,4 +1,3 @@
-# from src.extract_lambda import extract_bucket
 import json
 import boto3
 import re
