@@ -8,6 +8,9 @@ on:
     branches:
       - development
 
+env:
+  PYTHONPATH: ${{ github.workspace }}
+
 jobs:
   validate-and-test:
     environment: testing
