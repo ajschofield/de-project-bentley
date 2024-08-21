@@ -4,6 +4,7 @@ import pytest
 import pandas as pd
 import os
 import boto3
+import numpy as np
 
 @pytest.fixture(scope='class')
 def aws_credentials():
@@ -27,7 +28,23 @@ class TestReadFromS3:
         tables = ['Foods']
         result = read_from_s3_subfolder_to_df(tables,bucket='dummy_buc',client=s3_client)
         print(result)
+        expected_df =  pd.DataFrame(np.array([['Vegetable', 'Sour', 'Green'], ['Berry', 'Sweet', 'Red']]),
+                   columns=['Food_type', 'Flavour', 'Colour'])
         assert isinstance(result,dict)
-        assert list(result.keys()) == 'Foods'
+        assert list(result.keys())[0] == 'Foods'
         assert isinstance(result['Foods'],pd.DataFrame)
-        
+        assert result['Foods'].eq(expected_df,axis='columns').all(axis=None)
+    
+    def test_returns_dictionary_of_dataframes_for_multiple_tables(self,s3_client):
+        s3_client.upload_file('tests/dummy_2.csv', 'dummy_buc', 'Cars/2024/08/21/Cars_14:03:56.csv')
+        tables = ['Foods','Cars']
+        result = read_from_s3_subfolder_to_df(tables,bucket='dummy_buc',client=s3_client)
+        expected_foods_df =  pd.DataFrame(np.array([['Vegetable', 'Sour', 'Green'], ['Berry', 'Sweet', 'Red']]),
+                   columns=['Food_type', 'Flavour', 'Colour'])
+        expected_cars_df = pd.DataFrame(np.array([['Truck', 'Chevrolet', 'Grey'], ['Convertible', 'Mercedes','Red'],['Van','Volkswagen','Blue']]),
+                   columns=['Car_type', 'Brand', 'Colour'])
+        assert list(result.keys()) == tables
+        assert result['Foods'].eq(expected_foods_df,axis='columns').all(axis=None)
+        assert result['Cars'].eq(expected_cars_df,axis='columns').all(axis=None)
+
+

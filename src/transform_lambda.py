@@ -15,18 +15,6 @@ import pandas as pd
 
 def lambda_handler(event, context):
     s3_client = boto3.client('s3')  
-
-    tables = ['sales_order', 
-              'transaction', 
-              'payment', 
-              'counterparty', 
-              'address', 
-              'staff', 
-              'purchase_order', 
-              'department', 
-              'currency', 
-              'design', 
-              'payment_type']
     try:
         s3_bucket_name = event["Records"][0]["s3"]["bucket"]["name"]
         s3_file_name = event["Records"][0]["s3"]["object"]["key"]
@@ -51,9 +39,8 @@ def lambda_handler(event, context):
         'body': json.dumps('')
     }
 
-## each csv file must be converted into a pandas df 
-## done via read_csv, where stringIO creates an file-like-object from string - treats string like a file: as file is not physically stored in file 
-## each file needs its own panda df (?) to be normalised
+## Started from fresh on Wed 21st Aug:
+
 tables = ['sales_order', 
         'transaction', 
         'payment', 
@@ -70,14 +57,9 @@ def read_from_s3_subfolder_to_df(tables, bucket, client=boto3.client('s3')):
     table_dfs = {}
     for table in tables:
         response = client.list_objects_v2(Bucket=bucket, Prefix=table)
-        list_of_keys = ['s3://'+object['Key'] for object in response['Contents']] 
-        print(list_of_keys)
+        list_of_keys = ['s3://'+bucket+'/'+object['Key'] for object in response['Contents']] 
         list_of_df = [pd.read_csv(key) for key in list_of_keys]
         table_dfs[table] = pd.concat(list_of_df)
     return table_dfs
-    #   exec("%s = %d" % (table,pd.concat(list_of_df)))
-    #     exec(f"{table} = {pd.concat(list_of_df)}")
-    # table_dfs = [sales_order, transaction, payment, counterparty, address,
-    #              staff, purchase_order, department, currency, design, payment_type]
-                
+
         
