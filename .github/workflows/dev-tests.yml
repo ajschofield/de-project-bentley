@@ -50,3 +50,10 @@ jobs:
       - name: Check on failures
         if: steps.pytest.outcome == 'failure'
         run: exit 1
+      
+      - name: Upload Coverage Report'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cov-report
+          path: coverage.xml
+          retention-days: 7
