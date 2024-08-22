@@ -184,10 +184,8 @@ class TestExtractBucket:
         result = extract_bucket(s3_client)
         assert result == "extract_bucket"
 
-    def test_returns_index_error_if_no_buckets(self, s3_client):
-        # We don't even need to delete the bucket as there are no buckets
-        # due to the mock being reset for each test function now
-        with pytest.raises(IndexError, match="list index out of range"):
+    def test_raises_value_error_if_no_buckets(self, s3_client):
+        with pytest.raises(ValueError, match="No extract_bucket found"):
             extract_bucket(s3_client)
 
 
@@ -196,7 +194,9 @@ class TestListExistingS3Files:
         logger = logging.getLogger()
         logger.info("Testing now.")
         caplog.set_level(logging.ERROR)
-        list_existing_s3_files(client=s3_client)
+
+        with pytest.raises(ValueError, match="No extract_bucket found"):
+            list_existing_s3_files(client=s3_client)
         assert "Error listing S3 objects" in caplog.text
 
     def test_error_if_bucket_is_empty(self, s3_client, caplog, s3_mock_bucket):

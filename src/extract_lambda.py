@@ -107,6 +107,9 @@ def extract_bucket(client=None):
         bucket["Name"] for bucket in response["Buckets"] if "extract" in bucket["Name"]
     ]
 
+    if not extract_bucket_filter:
+        raise ValueError("No extract_bucket found")
+
     return extract_bucket_filter[0]
 
 
