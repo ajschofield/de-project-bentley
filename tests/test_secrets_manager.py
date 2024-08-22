@@ -1,4 +1,4 @@
-from src.extract_lambda import sm_client, retrieve_secrets
+from src.extract_lambda import retrieve_secrets
 import boto3
 import botocore.exceptions
 from moto import mock_aws
