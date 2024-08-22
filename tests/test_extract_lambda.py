@@ -168,9 +168,8 @@ class TestExtractBucket:
         assert result == "extract_bucket"
 
     def test_returns_index_error_if_no_buckets(self, s3_client):
-        s3_client.delete_bucket(Bucket="extract_bucket")
-        s3_client.delete_bucket(Bucket="bucket1")
-
+        # We don't even need to delete the bucket as there are no buckets
+        # due to the mock being reset for each test function now
         with pytest.raises(IndexError, match="list index out of range"):
             extract_bucket(s3_client)
 
