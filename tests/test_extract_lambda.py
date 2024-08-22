@@ -17,6 +17,13 @@ from src.extract_lambda import (
     retrieve_secrets,
     extract_bucket,
 )
+from pg8000.native import InterfaceError
+
+
+@pytest.fixture(scope="function", autouse=True)
+def aws_mocks():
+    with mock_aws():
+        yield
 
 
 @pytest.fixture
@@ -212,12 +219,18 @@ class TestConnectToDatabase:
         with pytest.raises(DBConnectionException):
             connect_to_database()
 
-    def test_logs_interface_error(self, caplog):
+    def test_logs_interface_error(self, caplog, mock_config):
+        # Use mock_config fixture which already mocks the retrieve_secrets
+        # function to return JSON string with DB connection details
         logger = logging.getLogger()
         logger.info("Testing now.")
         caplog.set_level(logging.ERROR)
-        with pytest.raises(DBConnectionException):
+
+        with patch(
+            "src.extract_lambda.Connection", side_effect=InterfaceError("Test error")
+        ), pytest.raises(DBConnectionException):
             connect_to_database()
+
         assert "Interface error" in caplog.text
 
 
