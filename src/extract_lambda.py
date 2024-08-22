@@ -118,15 +118,16 @@ def list_existing_s3_files(bucket_name=None, client=None):
     results of listing the contents of the s3 bucket, then
     returns the populated dictionary
     """
-    if client is None:
-        client = boto3.client("s3")
-    if bucket_name is None:
-        bucket_name = extract_bucket(client)
 
     logging.info("Listing existing S3 files")
     existing_files = {}
 
     try:
+        if client is None:
+            client = boto3.client("s3")
+        if bucket_name is None:
+            bucket_name = extract_bucket(client)
+
         response = client.list_objects_v2(Bucket=bucket_name)
 
         if "Contents" in response:
@@ -142,8 +143,11 @@ def list_existing_s3_files(bucket_name=None, client=None):
             logger.error("The bucket is empty")
             return None
 
-    except ClientError as e:
-        logger.error(f"Error listing S3 objects: {e}")
+    except ValueError as ve:
+        logger.error(f"Error listing S3 objects: {ve}")
+        raise
+    except ClientError as ce:
+        logger.error(f"Error listing S3 objects: {ce}")
 
     return existing_files
 

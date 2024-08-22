@@ -195,8 +195,14 @@ class TestListExistingS3Files:
         logger.info("Testing now.")
         caplog.set_level(logging.ERROR)
 
-        with pytest.raises(ValueError, match="No extract_bucket found"):
-            list_existing_s3_files(client=s3_client)
+        # Mock the extract_bucket function to raise a ValueError!
+        with patch(
+            "src.extract_lambda.extract_bucket",
+            side_effect=ValueError("No extract_bucket found"),
+        ):
+            with pytest.raises(ValueError, match="No extract_bucket found"):
+                list_existing_s3_files(client=s3_client)
+
         assert "Error listing S3 objects" in caplog.text
 
     def test_error_if_bucket_is_empty(self, s3_client, caplog, s3_mock_bucket):
