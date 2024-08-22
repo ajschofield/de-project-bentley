@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from src.transform_lambda import read_from_s3_subfolder_to_df, tables
 from src.extract_lambda import extract_bucket
 import json
@@ -6,7 +7,6 @@ import re
 import pandas as pd
 from datetime import datetime as dt
 import requests
-from bs4 import BeautifulSoup
 
 
 ## dim_staff table is the same across the schemas (no change)
