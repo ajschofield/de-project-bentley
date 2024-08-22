@@ -1,86 +1,50 @@
 import pandas as pd
-from src.transform_lambda import get_dataframes
-
-# {"design": "design dataframe", "address": "address dataframe", ....}
-dict_of_df = get_dataframes()
 
 
-# iterates through each dataframe in the list of dataframes and assigns them to a variable
-df_design = dict_of_df[design]
-df_currency = dict_of_df[currency]
-df_address = dict_of_df[address]
-df_staff = dict_of_df[staff]
-df_department = dict_of_df[department]
-df_counterparty = dict_of_df[counterparty]
-df_sales = dict_of_df[sales]
+def create_dim_design(dict_of_df):
+    df_design = dict_of_df["design"]
+    dim_design = df_design.loc[:, ["design_id", "design_name", "file_name", "file_location"]]
+    return dim_design
 
-# creates the dim_design dataframe
-dim_design = df_design.loc[:, "design_id", "design_name", "file_name", "file_location"]
+def create_dim_staff(dict_of_df):
+    staff_department = pd.merge(dict_of_df["staff"], dict_of_df["department"], on='department_id', how="outer")
+    dim_staff = staff_department.loc[:, ['staff_id', 'first_name', 'last_name', 'department_name', 'location', 'email_address']]
+    return dim_staff
 
-# creates the dim_staff dataframe
-staff_department = pd.merge(df_staff, df_department, on='department_id', how="outer")
-dim_staff = staff_department.loc[:, 'staff_id', 'first_name', 'last_name', 'department_name', 'location', 'email_address']
-
-# creates the dim_currency dataframe
-# Using .map to add currency_name column and link it to the currency code
-dim_currency = df_currency.loc[:, "currency_id", "currency_code"]
-mappings = {
-    "GBP": "Pound",
-    "USD": "US Dollar",
-    "EUR": "Euro"
-}
-dim_currency["currency_name"] = dim_currency["currency_code"].map(mappings)
-
-
-
-# creates the dim_location dataframe
-# need to change address id to location id
-"dim_location dataframe: (location_id, address_line_1, address_line_2, district, city, postal code, country, phone)"
-df_address.rename(columns={"address_id": "location_id"})
-dim_location = df_address.loc[:, "location_id", "address_line_1", "address_line_2", "district", "city", "postal_code" "country", "phone"]
-
-# creates the dim_counterparty dataframe
-counterparty_address = pd.merge(
-    df_counterparty,
-    df_address,
-    left_on="legal_address_id",
-    right_on="address_id",
-    how="outer"
-)
-counterparty_address.rename(
-    columns={
-        "address_line_1": "counterparty_legal_address_line_1",
-        "address_line_2": "counterparty_legal_address_line_2",
-        "district": "counterparty_legal_district",
-        "city": "counterparty_legal_city",
-        "postal_code": "counterparty_postal_code",
-        "country": "counterparty_legal_country",
-        "phone": "counterparty_legal_phone_number",
+def create_dim_currency(dict_of_df):
+    df_currency = dict_of_df["currency"]
+    dim_currency = df_currency.loc[:, ["currency_id", "currency_code"]]
+    mappings = {
+        "GBP": "Pound",
+        "USD": "US Dollar",
+        "EUR": "Euro"
     }
-)
+    dim_currency["currency_name"] = dim_currency["currency_code"].map(mappings)
+    return dim_currency
 
-dim_counterparty = df_counterparty.loc[:, "counterparty_id", "counterparty_legal_name", "counterparty_legal_address_line_1",
-                                   "counterparty_legal_address_line_2", "counterparty_legal_district", "counterpart_legal_city",
-                                   "counterparty_legal_postal_code", "counterparty_legal_country", "counterparty_legal_phone_number"]
 
-# creates the dim_date dataframe
-df_sales = df_sales.loc[:, "agreed_delivery_date"]
-df_sales["agreed_delivery_date"] = pd.to_datetime["agreed_delivery_date"]
-df_sales["year"] = df_sales["agreed_delivery_date"].dt.year
-df_sales["month"] = df_sales["agreed_delivery_date"].dt.month
-df_sales["day"] = df_sales["agreed_delivery_date"].dt.day
-df_sales["day_of_week"] = df_sales["agreed_delivery_date"].dt.dayofweek
-df_sales["day_name"] = df_sales["agreed_delivery_date"].dt.day_name()
-df_sales["month_name"] = df_sales["agreed_delivery_date"].dt.month_name()
-df_sales["quarter"] = df_sales["agreed_delivery_date"].dt.quarter()
+def create_dim_date(dict_of_df):
+    df_sales = dict_of_df["sales"]
+    df_sales = df_sales.loc[:, ["agreed_delivery_date"]]
+    df_sales["agreed_delivery_date"] = pd.to_datetime["agreed_delivery_date"]
+    df_sales["year"] = df_sales["agreed_delivery_date"].dt.year
+    df_sales["month"] = df_sales["agreed_delivery_date"].dt.month
+    df_sales["day"] = df_sales["agreed_delivery_date"].dt.day
+    df_sales["day_of_week"] = df_sales["agreed_delivery_date"].dt.dayofweek
+    df_sales["day_name"] = df_sales["agreed_delivery_date"].dt.day_name()
+    df_sales["month_name"] = df_sales["agreed_delivery_date"].dt.month_name()
+    df_sales["quarter"] = df_sales["agreed_delivery_date"].dt.quarter()
+    dim_date = ["date_id", "year", "month", "day", "day_of_week", "day_name", "month_name", "quarter"]   #series.dt.quarter()
+    return dim_date
 
 # repeat ln 52 - 60 for each column
 # merge dataframes into one dataframe
 # remove duplicates
 
 
-dim_date = ["date_id", "year", "month", "day", "day_of_week", "day_name", "month_name", "quarter"]   #series.dt.quarter()
+
 
 
 # TO DO:
+# complete dim_date
 # fact_sales_order
