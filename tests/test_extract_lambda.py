@@ -153,7 +153,14 @@ class TestExtractBucket:
         assert result == "extract_bucket"
 
     def test_bucket_returns_first_bucket(self, s3_client):
-        bucket1 = s3_client.create_bucket(
+        # Redefine what the test does
+        # Create two buckets and check that only extract_bucket is returned
+
+        s3_client.create_bucket(
+            Bucket="extract_bucket",
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.create_bucket(
             Bucket="bucket1",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
