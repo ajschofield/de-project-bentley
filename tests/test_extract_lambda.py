@@ -19,6 +19,12 @@ from src.extract_lambda import (
 )
 
 
+@pytest.fixture
+def mock_conn():
+    with patch("src.extract_lambda.Connection") as mock:
+        yield mock
+
+
 @pytest.fixture(scope="function")
 def mock_config():
     env_vars = {
@@ -214,6 +220,7 @@ class TestConnectToDatabase:
 
 
 class TestProcessAndUploadTables:
+    # Added missing mock_conn fixture
     def test_error_process_and_upload_tables(self, mock_conn, s3_client, caplog):
         caplog.set_level(logging.INFO)
 
