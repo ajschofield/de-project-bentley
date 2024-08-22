@@ -39,8 +39,8 @@ class TestReadFromS3:
         )
         print(result)
         expected_df = pd.DataFrame(
-            np.array([["Vegetable", "Sour", "Green"], ["Berry", "Sweet", "Red"]]),
-            columns=["Food_type", "Flavour", "Colour"],
+            np.array([["Vegetable", "Sour", "Green", "2022-11-03 14:20:49.962"], ["Berry", "Sweet", "Red", "2022-11-03 14:20:49.962"]]),
+            columns=["Food_type", "Flavour", "Colour", "last_updated"],
         )
         assert isinstance(result, dict)
         assert list(result.keys())[0] == "Foods"
@@ -56,8 +56,8 @@ class TestReadFromS3:
             tables, bucket="dummy_buc", client=s3_client
         )
         expected_foods_df = pd.DataFrame(
-            np.array([["Vegetable", "Sour", "Green"], ["Berry", "Sweet", "Red"]]),
-            columns=["Food_type", "Flavour", "Colour"],
+            np.array([["Vegetable", "Sour", "Green", "2022-11-03 14:20:49.962"], ["Berry", "Sweet", "Red", "2022-11-03 14:20:49.962"]]),
+            columns=["Food_type", "Flavour", "Colour", "last_updated"],
         )
         expected_cars_df = pd.DataFrame(
             np.array(
@@ -72,3 +72,5 @@ class TestReadFromS3:
         assert list(result.keys()) == tables
         assert result["Foods"].eq(expected_foods_df, axis="columns").all(axis=None)
         assert result["Cars"].eq(expected_cars_df, axis="columns").all(axis=None)
+
+
