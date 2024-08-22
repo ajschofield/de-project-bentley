@@ -8,15 +8,6 @@ from unittest import TestCase
 import os
 import logging
 import json
-from src.extract_lambda import (
-    list_existing_s3_files,
-    connect_to_database,
-    DBConnectionException,
-    lambda_handler,
-    process_and_upload_tables,
-    retrieve_secrets,
-    extract_bucket,
-)
 from pg8000.native import InterfaceError
 
 
@@ -71,6 +62,17 @@ def s3_mock_bucket(s3_client):
         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
     )
     return bucket
+
+
+from src.extract_lambda import (  # noqa: E402
+    list_existing_s3_files,
+    connect_to_database,
+    DBConnectionException,
+    lambda_handler,
+    process_and_upload_tables,
+    retrieve_secrets,
+    extract_bucket,
+)
 
 
 class TestLambdaHandler:
