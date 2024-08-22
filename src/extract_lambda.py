@@ -99,7 +99,9 @@ def connect_to_database() -> Connection:
         raise DBConnectionException("Failed to connect to database")
 
 
-def extract_bucket(client=boto3.client("s3")):
+def extract_bucket(client=None):
+    if client is None:
+        client = boto3.client("s3")
     response = client.list_buckets()
     extract_bucket_filter = [
         bucket["Name"] for bucket in response["Buckets"] if "extract" in bucket["Name"]
@@ -108,11 +110,16 @@ def extract_bucket(client=boto3.client("s3")):
     return extract_bucket_filter[0]
 
 
-def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client("s3")):
+def list_existing_s3_files(bucket_name=None, client=None):
     """Creates a dictionary and populates it with the
     results of listing the contents of the s3 bucket, then
     returns the populated dictionary
     """
+    if client is None:
+        client = boto3.client("s3")
+    if bucket_name is None:
+        bucket_name = extract_bucket(client)
+
     logging.info("Listing existing S3 files")
     existing_files = {}
 
