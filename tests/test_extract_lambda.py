@@ -19,7 +19,7 @@ from src.extract_lambda import (
 )
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def mock_config():
     env_vars = {
         "host": "abc",
@@ -34,7 +34,7 @@ def mock_config():
         yield mock_config
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def aws_credentials():
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
