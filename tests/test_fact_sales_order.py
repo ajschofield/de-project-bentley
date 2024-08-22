@@ -1,4 +1,4 @@
-from src.fact_sales_order import create_dim_design, create_dim_staff
+from src.fact_sales_order import create_dim_design, create_dim_staff, create_dim_currency
 import pandas as pd
 
 class TestCreateDimDesign:
@@ -37,4 +37,21 @@ class TestCreateDimStaff:
         expected_df = pd.DataFrame(data=expected_d)
         expected_result = expected_df.copy()
         assert result.equals(expected_result)     
+
+class TestCreateDimCurrency:
+    def test_dim_currency_returns_dataframe(self):
+        d = {"currency_id": [1, 2, 3], "currency_code": ["USD", "EUR", "GBP"]}
+        test_df = {"currency": pd.DataFrame(data=d)}
+        result = create_dim_currency(test_df)
+        assert isinstance(result, pd.DataFrame)  
+        
+    def test_dim_currency_returns_columns_and_values(self):
+        d = {"currency_id": [1, 2, 3], "currency_code": ["USD", "EUR", "GBP"]}
+        test_df = {"currency": pd.DataFrame(data=d)}
+        result = create_dim_currency(test_df)
+        expected_d = {"currency_id": [1, 2, 3], "currency_code": ["USD", "EUR", "GBP"], "currency_name": ["US Dollar", "Euro", "Pound"]}
+        expected_df = pd.DataFrame(data=expected_d)
+        expected_result = expected_df.copy()
+        assert result.equals(expected_result)
+
     
