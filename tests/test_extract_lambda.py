@@ -27,13 +27,15 @@ def mock_conn():
 
 @pytest.fixture(scope="function")
 def mock_config():
-    env_vars = {
-        "host": "abc",
-        "port": "5432",
-        "user": "def",
-        "password": "password",
-        "database": "db",
-    }
+    env_vars = json.dumps(
+        {
+            "host": "abc",
+            "port": "5432",
+            "user": "def",
+            "password": "password",
+            "database": "db",
+        }
+    )
     with patch(
         "src.extract_lambda.retrieve_secrets", return_value=env_vars
     ) as mock_config:
