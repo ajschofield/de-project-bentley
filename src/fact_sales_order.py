@@ -37,14 +37,41 @@ def create_dim_date(dict_of_df):
     dim_date = ["date_id", "year", "month", "day", "day_of_week", "day_name", "month_name", "quarter"]   #series.dt.quarter()
     return dim_date
 
-# repeat ln 52 - 60 for each column
+def create_fact_sales_order(dict_of_df):
+    df_sales = dict_of_df["sales_order"]
+    df_sales.index.name = "sales_record_id"
+    df_sales["created_date"] = pd.to_datetime(df_sales["created_at"]).dt.date
+    df_sales["created_time"] = pd.to_datetime(df_sales["created_at"]).dt.time
+    df_sales["last_updated_date"] = pd.to_datetime(df_sales["last_updated"]).dt.date
+    df_sales["last_updated_time"] = pd.to_datetime(df_sales["last_updated"]).dt.time
+    df_sales.rename(columns={"staff_id": "sales_staff_id"})
+    fact_sales_order = df_sales.loc[:,[
+        "sales_record_id",
+        "sales_order_id",
+        "created_date",
+        "created_time",
+        "last_updated_date",
+        "last_updated_time",
+        "sales_staff_id",
+        "counterparty_id",
+        "units_sold",
+        "unit_price",
+        "currency_id",
+        "design_id",
+        "agreed_payment_date",
+        "agreed_delivery_date",
+        "agreed_delivery_location_id"
+    ]]
+    return fact_sales_order
+
+# TO DO:                                    
+# complete dim_date from merged fact table
 # merge dataframes into one dataframe
 # remove duplicates
+# test dim_date and fact_sales_order
 
 
 
 
 
-# TO DO:
-# complete dim_date
-# fact_sales_order
+
