@@ -1,7 +1,8 @@
 import pandas as pd
 from src.transform_lambda import get_dataframes
 
-dict_of_df = get_dataframes()  # {"design": "design dataframe", "address": "address dataframe", ....}
+# {"design": "design dataframe", "address": "address dataframe", ....}
+dict_of_df = get_dataframes()
 
 
 # iterates through each dataframe in the list of dataframes and assigns them to a variable
@@ -33,16 +34,30 @@ dim_currency["currency_name"] = dim_currency["currency_code"].map(mappings)
 
 
 # creates the dim_location dataframe
-# need to change address id to location id 
+# need to change address id to location id
 "dim_location dataframe: (location_id, address_line_1, address_line_2, district, city, postal code, country, phone)"
 df_address.rename(columns={"address_id": "location_id"})
 dim_location = df_address.loc[:, "location_id", "address_line_1", "address_line_2", "district", "city", "postal_code" "country", "phone"]
 
 # creates the dim_counterparty dataframe
-counterparty_address = pd.merge(df_counterparty, df_address, left_on="legal_address_id", right_on='address_id', how="outer")
-counterparty_address.rename(columns={"address_line_1": "counterparty_legal_address_line_1", "address_line_2": "counterparty_legal_address_line_2",
-                                     "district": "counterparty_legal_district", "city": "counterparty_legal_city", "postal_code": "counterparty_postal_code",
-                                     "country": "counterparty_legal_country", "phone": "counterparty_legal_phone_number"})
+counterparty_address = pd.merge(
+    df_counterparty,
+    df_address,
+    left_on="legal_address_id",
+    right_on="address_id",
+    how="outer"
+)
+counterparty_address.rename(
+    columns={
+        "address_line_1": "counterparty_legal_address_line_1",
+        "address_line_2": "counterparty_legal_address_line_2",
+        "district": "counterparty_legal_district",
+        "city": "counterparty_legal_city",
+        "postal_code": "counterparty_postal_code",
+        "country": "counterparty_legal_country",
+        "phone": "counterparty_legal_phone_number",
+    }
+)
 
 dim_counterparty = df_counterparty.loc[:, "counterparty_id", "counterparty_legal_name", "counterparty_legal_address_line_1",
                                    "counterparty_legal_address_line_2", "counterparty_legal_district", "counterpart_legal_city",
