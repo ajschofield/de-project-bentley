@@ -43,13 +43,13 @@ def aws_credentials():
     os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def s3_client(aws_credentials):
     with mock_aws():
         yield boto3.client("s3")
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def s3_mock_bucket(s3_client):
     bucket = s3_client.create_bucket(
         Bucket="extract_bucket",
