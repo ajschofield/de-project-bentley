@@ -31,3 +31,4 @@ xmltodict==0.13.0
 s3fs 
 pandas
 pyarrow
+SQLAlchemy
