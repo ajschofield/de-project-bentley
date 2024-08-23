@@ -8,33 +8,39 @@ from unittest import TestCase
 import os
 import logging
 import json
-from src.extract_lambda import (
-    list_existing_s3_files,
-    connect_to_database,
-    DBConnectionException,
-    lambda_handler,
-    process_and_upload_tables,
-    retrieve_secrets,
-    extract_bucket,
-)
+from pg8000.native import InterfaceError
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function", autouse=True)
+def aws_mocks():
+    with mock_aws():
+        yield
+
+
+@pytest.fixture
+def mock_conn():
+    with patch("src.extract_lambda.Connection") as mock:
+        yield mock
+
+
+@pytest.fixture(scope="function")
 def mock_config():
-    env_vars = {
-        "host": "abc",
-        "port": "5432",
-        "user": "def",
-        "password": "password",
-        "database": "db",
-    }
+    env_vars = json.dumps(
+        {
+            "host": "abc",
+            "port": "5432",
+            "user": "def",
+            "password": "password",
+            "database": "db",
+        }
+    )
     with patch(
         "src.extract_lambda.retrieve_secrets", return_value=env_vars
     ) as mock_config:
         yield mock_config
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function", autouse=True)
 def aws_credentials():
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
@@ -43,19 +49,30 @@ def aws_credentials():
     os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def s3_client(aws_credentials):
     with mock_aws():
         yield boto3.client("s3")
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def s3_mock_bucket(s3_client):
     bucket = s3_client.create_bucket(
         Bucket="extract_bucket",
         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
     )
     return bucket
+
+
+from src.extract_lambda import (  # noqa: E402
+    list_existing_s3_files,
+    connect_to_database,
+    DBConnectionException,
+    lambda_handler,
+    process_and_upload_tables,
+    retrieve_secrets,
+    extract_bucket,
+)
 
 
 class TestLambdaHandler:
@@ -153,18 +170,22 @@ class TestExtractBucket:
         assert result == "extract_bucket"
 
     def test_bucket_returns_first_bucket(self, s3_client):
-        bucket1 = s3_client.create_bucket(
+        # Redefine what the test does
+        # Create two buckets and check that only extract_bucket is returned
+
+        s3_client.create_bucket(
+            Bucket="extract_bucket",
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        s3_client.create_bucket(
             Bucket="bucket1",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
         )
         result = extract_bucket(s3_client)
         assert result == "extract_bucket"
 
-    def test_returns_index_error_if_no_buckets(self, s3_client):
-        s3_client.delete_bucket(Bucket="extract_bucket")
-        s3_client.delete_bucket(Bucket="bucket1")
-
-        with pytest.raises(IndexError, match="list index out of range"):
+    def test_raises_value_error_if_no_buckets(self, s3_client):
+        with pytest.raises(ValueError, match="No extract_bucket found"):
             extract_bucket(s3_client)
 
 
@@ -173,7 +194,15 @@ class TestListExistingS3Files:
         logger = logging.getLogger()
         logger.info("Testing now.")
         caplog.set_level(logging.ERROR)
-        list_existing_s3_files(client=s3_client)
+
+        # Mock the extract_bucket function to raise a ValueError!
+        with patch(
+            "src.extract_lambda.extract_bucket",
+            side_effect=ValueError("No extract_bucket found"),
+        ):
+            with pytest.raises(ValueError, match="No extract_bucket found"):
+                list_existing_s3_files(client=s3_client)
+
         assert "Error listing S3 objects" in caplog.text
 
     def test_error_if_bucket_is_empty(self, s3_client, caplog, s3_mock_bucket):
@@ -198,16 +227,23 @@ class TestConnectToDatabase:
         with pytest.raises(DBConnectionException):
             connect_to_database()
 
-    def test_logs_interface_error(self, caplog):
+    def test_logs_interface_error(self, caplog, mock_config):
+        # Use mock_config fixture which already mocks the retrieve_secrets
+        # function to return JSON string with DB connection details
         logger = logging.getLogger()
         logger.info("Testing now.")
         caplog.set_level(logging.ERROR)
-        with pytest.raises(DBConnectionException):
+
+        with patch(
+            "src.extract_lambda.Connection", side_effect=InterfaceError("Test error")
+        ), pytest.raises(DBConnectionException):
             connect_to_database()
+
         assert "Interface error" in caplog.text
 
 
 class TestProcessAndUploadTables:
+    # Added missing mock_conn fixture
     def test_error_process_and_upload_tables(self, mock_conn, s3_client, caplog):
         caplog.set_level(logging.INFO)
 

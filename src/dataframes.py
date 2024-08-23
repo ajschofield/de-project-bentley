@@ -16,6 +16,7 @@ import requests
 # dim_counterparty
 
 
+
 def create_fact_sales_order(dict_of_df):
     df_sales = dict_of_df["sales_order"]
     df_sales.index.name = "sales_record_id"
@@ -94,6 +95,7 @@ def create_fact_payment(dict_of_df):
     return fact_payment
 
 
+
 # test passed
 
 
@@ -105,15 +107,13 @@ def create_dim_transaction(dict_of_df):
 
 
 # test passed
-
-
 def create_dim_location(dict_of_df):
     df_loc = (
         dict_of_df["address"]
         .drop(labels=["created_at", "last_updated"], axis=1)
         .rename(columns={"address_id": "location_id"})
-    )
     return df_loc
+
 
 
 def create_dim_counterparty(dict_of_df):
@@ -163,8 +163,6 @@ def create_dim_date(dict_of_df):
 
 
 # tests passed
-
-
 def scrape_currency_names():
     response = requests.get("https://www.xe.com/currency/").content
     soup = BeautifulSoup(response, "html.parser")
@@ -176,7 +174,6 @@ def scrape_currency_names():
         {0: "currency_code", 1: "currency_name"}, axis=1
     )
     return df_cur
-
 
 # tests passed
 
@@ -191,11 +188,11 @@ def create_dim_currency(dict_of_df, names=scrape_currency_names()):
 
 # tests passed
 
-
 def create_dim_payment_type(dict_of_df):
     df_payment_type = dict_of_df["payment_type"]
     dim_payment_type = df_payment_type.loc[:, ["payment_type_id", "payment_type_name"]]
     return dim_payment_type
+
 
 
 # tests passed
@@ -209,8 +206,8 @@ def create_dim_design(dict_of_df):
     return dim_design
 
 
-# tests passed
 
+# tests passed
 
 def create_dim_staff(dict_of_df):
     staff_department = pd.merge(

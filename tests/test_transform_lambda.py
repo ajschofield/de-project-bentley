@@ -1,11 +1,18 @@
-from src.transform_lambda import read_from_s3_subfolder_to_df
+from src.transform_lambda import read_from_s3_subfolder_to_df, list_existing_s3_files, bucket_name
 from moto import mock_aws
 import pytest
 import pandas as pd
 import os
 import boto3
+from botocore.exceptions import ClientError
 import numpy as np
+# import caplog
+import logging
 
+
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 @pytest.fixture(scope="class")
 def aws_credentials():
@@ -23,6 +30,7 @@ def s3_client(aws_credentials):
 
 
 class TestReadFromS3:
+    # @pytest.mark.skip(reason="The test is broken!")
     def test_returns_dictionary_with_correct_value_pair(self, s3_client):
         s3_client.create_bucket(
             Bucket="dummy_buc",
@@ -39,7 +47,12 @@ class TestReadFromS3:
         )
         print(result)
         expected_df = pd.DataFrame(
-            np.array([["Vegetable", "Sour", "Green", "2022-11-03 14:20:49.962"], ["Berry", "Sweet", "Red", "2022-11-03 14:20:49.962"]]),
+            np.array(
+                [
+                    ["Vegetable", "Sour", "Green", "2022-11-03 14:20:49.962"],
+                    ["Berry", "Sweet", "Red", "2022-11-03 14:20:49.962"],
+                ]
+            ),
             columns=["Food_type", "Flavour", "Colour", "last_updated"],
         )
         assert isinstance(result, dict)
@@ -47,6 +60,7 @@ class TestReadFromS3:
         assert isinstance(result["Foods"], pd.DataFrame)
         assert result["Foods"].eq(expected_df, axis="columns").all(axis=None)
 
+    # @pytest.mark.skip(reason="The test is broken!")
     def test_returns_dictionary_of_dataframes_for_multiple_tables(self, s3_client):
         s3_client.upload_file(
             "tests/dummy_2.csv", "dummy_buc", "Cars/2024/08/21/Cars_14:03:56.csv"
@@ -56,7 +70,12 @@ class TestReadFromS3:
             tables, bucket="dummy_buc", client=s3_client
         )
         expected_foods_df = pd.DataFrame(
-            np.array([["Vegetable", "Sour", "Green", "2022-11-03 14:20:49.962"], ["Berry", "Sweet", "Red", "2022-11-03 14:20:49.962"]]),
+            np.array(
+                [
+                    ["Vegetable", "Sour", "Green", "2022-11-03 14:20:49.962"],
+                    ["Berry", "Sweet", "Red", "2022-11-03 14:20:49.962"],
+                ]
+            ),
             columns=["Food_type", "Flavour", "Colour", "last_updated"],
         )
         expected_cars_df = pd.DataFrame(
@@ -73,4 +92,42 @@ class TestReadFromS3:
         assert result["Foods"].eq(expected_foods_df, axis="columns").all(axis=None)
         assert result["Cars"].eq(expected_cars_df, axis="columns").all(axis=None)
 
+class TestListExistingFiles:
+    def test_functions_receives_error_if_no_bucket(self, s3_client, caplog):
+        caplog.set_level(logging.INFO)
 
+        with pytest.raises(ClientError):
+                list_existing_s3_files('rando_bucket', client=s3_client)
+
+        assert "Error listing S3 objects: An error occurred (NoSuchBucket) when calling the ListObjectsV2 operation: The specified bucket does not exist" in caplog.text
+
+    def test_recieves_logger_error_if_no_files_listed(self, s3_client, caplog):
+        caplog.set_level(logging.INFO)
+
+        s3_client.create_bucket(
+            Bucket='mock_bucket',
+             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"}
+        )
+        response = list_existing_s3_files('mock_bucket', client=s3_client)
+        assert 'The bucket is empty' in caplog.text
+
+    def test_retrieves_existing_files(self, s3_client, caplog):
+        caplog.set_level(logging.INFO)
+
+        s3_client.upload_file(
+            "tests/dummy.txt", 'mock_bucket', "dummy.txt"
+        )
+        result = list_existing_s3_files('mock_bucket', client=s3_client)
+        assert result == ["dummy.txt"]
+
+class TestBucketName:
+    def test_functions_retrieves_bucket(self, s3_client):
+        s3_client.create_bucket(
+            Bucket='mock_bucket',
+             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"}
+        )
+        
+        bucket = bucket_name('mock_bucket', s3_client)
+        assert bucket == 'mock_bucket'
+
+    # def test_
