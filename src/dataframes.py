@@ -104,30 +104,23 @@ def create_dim_counterparty(dict_of_df):
 
 ## dim_date from purchase_order
 def create_dim_date(dict_of_df):
-    sr_date = pd.concat([dict_of_df['created_date'],dict_of_df['last_updated_date'],dict_of_df['agreed_delivery_date'],dict_of_df['agreed_payment_date']]).sort()
-    df_date = pd.DataFrame(sr_date,columns='date_id')
+    fact_dfs = [create_fact_payment(dict_of_df), create_fact_purchase_orders(dict_of_df), create_fact_sales_order(dict_of_df)]
+    date_col_names = [col_name for col_name in list(fact_dfs[0].columns) if 'date' in col_name]
+    list_of_date_columns = []
+    for df in fact_dfs:
+        for col in date_col_names:
+            list_of_date_columns.append(df[col])
+    sr_date = pd.array(pd.concat(list_of_date_columns),dtype='datetime64[ns]')
+    df_date = pd.DataFrame(data=sr_date,columns=['date_id'])
+    df_date.drop_duplicates(inplace=True)
     df_date['year'] = df_date['date_id'].dt.year
     df_date['month'] = df_date['date_id'].dt.month
     df_date['day'] = df_date['date_id'].dt.day
     df_date['day_of_week'] = df_date['date_id'].dt.dayofweek
-    df_date['day_name'] = df_date['date_id'].dt.day_name
-    df_date['month_name'] = df_date['date_id'].dt.month_name
-    df_date['quarter'] = df_date['date_id'].dt.quarter
-    df_date.set_index('date_id')
-
-def create_dim_date(dict_of_df):
-    df_sales = dict_of_df["sales"]
-    df_sales = df_sales.loc[:, ["agreed_delivery_date"]]
-    df_sales["agreed_delivery_date"] = pd.to_datetime["agreed_delivery_date"]
-    df_sales["year"] = df_sales["agreed_delivery_date"].dt.year
-    df_sales["month"] = df_sales["agreed_delivery_date"].dt.month
-    df_sales["day"] = df_sales["agreed_delivery_date"].dt.day
-    df_sales["day_of_week"] = df_sales["agreed_delivery_date"].dt.dayofweek
-    df_sales["day_name"] = df_sales["agreed_delivery_date"].dt.day_name()
-    df_sales["month_name"] = df_sales["agreed_delivery_date"].dt.month_name()
-    df_sales["quarter"] = df_sales["agreed_delivery_date"].dt.quarter()
-    dim_date = ["date_id", "year", "month", "day", "day_of_week", "day_name", "month_name", "quarter"]   #series.dt.quarter()
-    return dim_date
+    df_date['day_name'] = df_date['date_id'].dt.day_name()
+    df_date['month_name'] = df_date['date_id'].dt.month_name()
+    df_date['quarter'] = df_date['date_id'].dt.quarter #By default, the DataFrame index is not included when uploading to RDS. We are not setting indexes to retain the column information
+    return 
 
 def scrape_currency_names():
     response = requests.get('https://www.xe.com/currency/').content
