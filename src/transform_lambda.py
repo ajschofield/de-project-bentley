@@ -207,5 +207,6 @@ def list_existing_s3_files(bucket_name, client=boto3.client("s3")):
 
     except ClientError as e:
         logger.error(f"Error listing S3 objects: {e}")
+        raise e
 
     return existing_files

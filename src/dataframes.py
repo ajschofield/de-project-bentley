@@ -1,11 +1,11 @@
 import pandas as pd
 from bs4 import BeautifulSoup
-from src.transform_lambda import read_from_s3_subfolder_to_df, tables
-from src.extract_lambda import extract_bucket
-import json
-import boto3
-import re
-from datetime import datetime as dt
+# from src.transform_lambda import read_from_s3_subfolder_to_df, tables
+# from src.extract_lambda import extract_bucket
+# import json
+# import boto3
+# import re
+# from datetime import datetime as dt
 import requests
 
 # Table names:
