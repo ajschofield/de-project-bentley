@@ -1,5 +1,5 @@
 import boto3
-from botocore.exceptions import ClientError, InterfaceError
+from botocore.exceptions import ClientError
 import pandas as pd
 import pyarrow.parquet as pq
 from io import BytesIO
