@@ -29,11 +29,19 @@ class TestConnectToDBAndReturnEngine:
     pass
 
 class TestGetTransformBucket:
-    def test_get_transform_bucket_raises_error_if_no_buckets(self, mock_s3_client):
+    def test_raises_value_error_if_no_buckets(self, mock_s3_client):
         with pytest.raises(ValueError, match="No transform bucket found"):
             get_transform_bucket(mock_s3_client)
 
-    def test_get_transform_bucket_returns_transform_bucket_if_one_bucket(self, mock_s3_client):
+    def test_raises_value_error_if_no_transform_bucket(self, mock_s3_client):
+        mock_s3_client.create_bucket(
+        Bucket="extract_bucket",
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    )
+        with pytest.raises(ValueError, match="No transform bucket found"):
+            get_transform_bucket(mock_s3_client)
+
+    def test_returns_transform_bucket_if_one_bucket(self, mock_s3_client):
         mock_s3_client.create_bucket(
         Bucket="transform_bucket",
         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
@@ -41,16 +49,16 @@ class TestGetTransformBucket:
         result = get_transform_bucket(mock_s3_client)
         assert result == "transform_bucket"
 
-    def test_get_transform_bucket_only_returns_transform_bucket_if_several_buckets(self, mock_s3_client):
+    def test_only_returns_transform_bucket_if_several_buckets(self, mock_s3_client):
         mock_s3_client.create_bucket(
-        Bucket="extract_bucket",
+        Bucket="another_test_bucket",
         CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
     )
         result = get_transform_bucket(mock_s3_client)
         assert result == "transform_bucket"
 
 class TestConvertParquetToDfs:
-        pass
+    pass
 
 class TestUploadDfsToDatabase:
     pass
