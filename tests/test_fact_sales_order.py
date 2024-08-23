@@ -1,13 +1,13 @@
-<<<<<<< Updated upstream
+import pandas as pd
+from fact_sales_order import create_dim_design, create_dim_staff, create_dim_currency
 from src.fact_sales_order import (
     create_dim_design,
     create_dim_staff,
     create_dim_currency,
 )
-=======
-from fact_sales_order import create_dim_design, create_dim_staff, create_dim_currency
->>>>>>> Stashed changes
-import pandas as pd
+<< << << < Updated upstream
+== == == =
+>>>>>> > Stashed changes
 
 
 class TestCreateDimDesign:
@@ -60,7 +60,8 @@ class TestCreateDimStaff:
             "email_address": ["Hello", "Bye"],
             "department_id": ["Hello", "Bye"],
         }
-        test_df = {"staff": pd.DataFrame(data=d), "department": pd.DataFrame(data=d2)}
+        test_df = {"staff": pd.DataFrame(
+            data=d), "department": pd.DataFrame(data=d2)}
         result = create_dim_staff(test_df)
         assert isinstance(result, pd.DataFrame)
 
@@ -77,7 +78,8 @@ class TestCreateDimStaff:
             "email_address": ["Hello", "Bye"],
             "department_id": ["Hello", "Bye"],
         }
-        test_df = {"staff": pd.DataFrame(data=d), "department": pd.DataFrame(data=d2)}
+        test_df = {"staff": pd.DataFrame(
+            data=d), "department": pd.DataFrame(data=d2)}
         result = create_dim_staff(test_df)
         expected_d = {
             "staff_id": ["Hello", "Bye"],
