@@ -17,6 +17,20 @@ logging.basicConfig(
 
 logging.getLogger("botocore").setLevel(logging.WARNING)
 
+# get transform bucket
+def transform_bucket(client=None):
+    if client is None:
+        client = boto3.client("s3")
+    response = client.list_buckets()
+    transform_bucket_filter = [
+        bucket["Name"] for bucket in response["Buckets"] if "transform" in bucket["Name"]
+    ]
+
+    if not transform_bucket_filter:
+        raise ValueError("No transform_bucket found")
+
+    return transform_bucket_filter[0]
+
 # list and then retrieve parquet files from S3 bucket
 # convert parquet files into dataframes and return a list of dataframes  
 def convert_parquet_files_to_dfs(bucket_name=None, client=None):
@@ -24,7 +38,7 @@ def convert_parquet_files_to_dfs(bucket_name=None, client=None):
         if client is None:
             client = boto3.client("s3")
         if bucket_name is None:
-            bucket_name = "transform_bucket"
+            bucket_name = transform_bucket(client)
         files = client.list_objects_v2(Bucket=bucket_name)
 
         dfs = []
