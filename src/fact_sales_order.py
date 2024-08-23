@@ -44,7 +44,8 @@ def create_fact_sales_order(dict_of_df):
     df_sales["created_time"] = pd.to_datetime(df_sales["created_at"]).dt.time
     df_sales["last_updated_date"] = pd.to_datetime(df_sales["last_updated"]).dt.date
     df_sales["last_updated_time"] = pd.to_datetime(df_sales["last_updated"]).dt.time
-    df_sales.rename(columns={"staff_id": "sales_staff_id"})
+    pd.merge(dict_of_df["staff"], df_sales["sales_staff_id"], on="staff_id", how="left")
+    # df_sales.rename(columns={"staff_id": "sales_staff_id"})
     fact_sales_order = df_sales.loc[:,[
         "sales_record_id",
         "sales_order_id",
@@ -70,7 +71,20 @@ def create_fact_sales_order(dict_of_df):
 # remove duplicates
 # test dim_date and fact_sales_order
 
-
+def create_sales_star_schema(dict_of_df):
+    dim_design = create_dim_design(dict_of_df)
+    dim_staff = create_dim_staff(dict_of_df)
+    dim_currency = create_dim_currency(dict_of_df)
+    dim_date = create_dim_date(dict_of_df)
+    
+    fact_sales_order = create_fact_sales_order(dict_of_df)
+    
+    fact_sales_order = fact_sales_order.merge(dim_design, on='design_id', how='left')
+    fact_sales_order = fact_sales_order.merge(dim_staff, left_on='sales_staff_id', right_on='staff_id', how='left')
+    fact_sales_order = fact_sales_order.merge(dim_currency, on='currency_id', how='left')
+    fact_sales_order = fact_sales_order.merge(dim_date, left_on='agreed_delivery_date', right_on='date_id', how='left')
+    
+    return fact_sales_order
 
 
 
