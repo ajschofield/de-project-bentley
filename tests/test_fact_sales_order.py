@@ -5,10 +5,6 @@ from src.fact_sales_order import (
     create_dim_staff,
     create_dim_currency,
 )
-<< << << < Updated upstream
-== == == =
->>>>>> > Stashed changes
-
 
 class TestCreateDimDesign:
     def test_dim_design_returns_dataframe(self):
