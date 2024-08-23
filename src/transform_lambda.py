@@ -6,9 +6,6 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from src.dataframes import *
-
-# from src.extract_lambda import extract_bucket, DBConnectionException
-import boto3
 from botocore.exceptions import ClientError
 from pg8000.native import Connection, InterfaceError
 from datetime import datetime
@@ -34,7 +31,7 @@ logging.basicConfig(
 
 logging.getLogger("botocore").setLevel(logging.WARNING)
 
-tables = [
+TABLES = [
     "sales_order",
     "transaction",
     "payment",
@@ -54,12 +51,11 @@ def lambda_handler(event, context):
 
     try:
         db = connect_to_database()
-        bucket = bucket_name("transform")
+        bucket = bucket_name('transform')
+        
         existing_s3_files = list_existing_s3_files(bucket)
 
-        dict_of_df = read_from_s3_subfolder_to_df(
-            tables, extract_bucket(), client=boto3.client("s3")
-        )
+        dict_of_df = read_from_s3_subfolder_to_df(TABLES, bucket_name('extract'), client=boto3.client("s3"))
 
         immutable_df_dict = {
             "dim_counterparty": create_dim_counterparty(dict_of_df),
@@ -133,7 +129,6 @@ def process_to_parquet_and_upload_to_s3(
         status["uploaded"].append(table_name)
 
     return status
-
 
 def retrieve_secrets():
     secret_name = "bentley-secrets"

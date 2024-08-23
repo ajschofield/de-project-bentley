@@ -1,8 +1,12 @@
+<<<<<<< Updated upstream
 from src.fact_sales_order import (
     create_dim_design,
     create_dim_staff,
     create_dim_currency,
 )
+=======
+from fact_sales_order import create_dim_design, create_dim_staff, create_dim_currency
+>>>>>>> Stashed changes
 import pandas as pd
 
 
