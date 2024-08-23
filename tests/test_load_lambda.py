@@ -17,17 +17,9 @@ def aws_credentials():
 
 
 @pytest.fixture(scope="class")
-def s3_client(aws_credentials):
+def mock_s3_client(aws_credentials):
     with mock_aws():
         yield boto3.client("s3")
-
-@pytest.fixture(scope="function")
-def s3_mock_bucket(s3_client):
-    bucket = s3_client.create_bucket(
-        Bucket="transform_bucket",
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
-    )
-    return bucket
 
 
 class TestLambdaHandler:
@@ -37,8 +29,24 @@ class TestConnectToDBAndReturnEngine:
     pass
 
 class TestGetTransformBucket:
-    def test_get_transform_bucket_returns_string(self, s3_client, s3_mock_bucket):
-        result = get_transform_bucket(s3_client)
+    def test_get_transform_bucket_raises_error_if_no_buckets(self, mock_s3_client):
+        with pytest.raises(ValueError, match="No transform bucket found"):
+            get_transform_bucket(mock_s3_client)
+
+    def test_get_transform_bucket_returns_transform_bucket_if_one_bucket(self, mock_s3_client):
+        mock_s3_client.create_bucket(
+        Bucket="transform_bucket",
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    )
+        result = get_transform_bucket(mock_s3_client)
+        assert result == "transform_bucket"
+
+    def test_get_transform_bucket_only_returns_transform_bucket_if_several_buckets(self, mock_s3_client):
+        mock_s3_client.create_bucket(
+        Bucket="extract_bucket",
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    )
+        result = get_transform_bucket(mock_s3_client)
         assert result == "transform_bucket"
 
 class TestConvertParquetToDfs:
