@@ -25,6 +25,9 @@ def mock_s3_client(aws_credentials):
 class TestLambdaHandler:
     pass
 
+class TestRetrieveSecrets:
+    pass
+
 class TestConnectToDBAndReturnEngine:
     pass
 
@@ -58,7 +61,18 @@ class TestGetTransformBucket:
         assert result == "transform_bucket"
 
 class TestConvertParquetToDfs:
-    pass
+    def test_function_returns_empty_dictionary_if_no_files(self, mock_s3_client):
+        mock_s3_client.create_bucket(
+        Bucket="transform_bucket",
+        CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+    )
+        result = convert_parquet_files_to_dfs(bucket_name="transform_bucket", client=mock_s3_client)
+        assert result == {}
+
+    def test_function_returns_dictionary_with_table_with_file_key():
+        # need to mock parquet file and upload to mock bucket
+        result = convert_parquet_files_to_dfs(bucket_name="transform_bucket", client=mock_s3_client)
+        assert "dim_staff" in result
 
 class TestUploadDfsToDatabase:
     pass
