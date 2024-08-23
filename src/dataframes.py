@@ -81,28 +81,28 @@ def create_fact_payment(dict_of_df):
     ]]
     return fact_payment
 
+#test passed
 def create_dim_transaction(dict_of_df):
-    df_transaction = dict_of_df["transaction"].drop(labels=['created_at', 'last_updated'], axis=1).set_index('transaction_id')
-    dim_transaction = df_transaction.loc[:, ["payment_type_id", "payment_type_name"]]
-    return dim_transaction
+    df_transaction = dict_of_df["transaction"].drop(labels=['created_at', 'last_updated'], axis=1)
+    return df_transaction
 
-## dim_location from address --> drops 2 columns
+#test passed
 def create_dim_location(dict_of_df):
-    df_loc = dict_of_df['address'].drop(labels=['created_at', 'last_updated'], axis=1).rename(columns={'address_id': 'location_id'}).set_index('location_id')
+    df_loc = dict_of_df['address'].drop(labels=['created_at', 'last_updated'], axis=1).rename(columns={'address_id': 'location_id'})
     return df_loc
 
-## dim_counterparty from address and counterparty
+
 def create_dim_counterparty(dict_of_df):
     df_prefixed_address = dict_of_df['address'].add_prefix('counterparty_legal_', axis=1) 
     df_cp = pd.merge(dict_of_df['counterparty'], 
             df_prefixed_address, 
             left_on="legal_address_id", 
-            right_on="address_id", 
-            how="outer").set_index('counterparty_id')
+            right_on="counterparty_legal_address_id", 
+            how="outer")
+    df_cp.drop(columns=["legal_address_id","counterparty_legal_address_id"],inplace=True)
     return df_cp
 
-
-## dim_date from purchase_order
+#test passed
 def create_dim_date(dict_of_df):
     fact_dfs = [create_fact_payment(dict_of_df), create_fact_purchase_orders(dict_of_df), create_fact_sales_order(dict_of_df)]
     date_col_names = [col_name for col_name in list(fact_dfs[0].columns) if 'date' in col_name]
@@ -119,9 +119,10 @@ def create_dim_date(dict_of_df):
     df_date['day_of_week'] = df_date['date_id'].dt.dayofweek
     df_date['day_name'] = df_date['date_id'].dt.day_name()
     df_date['month_name'] = df_date['date_id'].dt.month_name()
-    df_date['quarter'] = df_date['date_id'].dt.quarter #By default, the DataFrame index is not included when uploading to RDS. We are not setting indexes to retain the column information
-    return 
+    df_date['quarter'] = df_date['date_id'].dt.quarter 
+    return df_date
 
+#tests passed
 def scrape_currency_names():
     response = requests.get('https://www.xe.com/currency/').content
     soup = BeautifulSoup(response,'html.parser')
@@ -130,11 +131,12 @@ def scrape_currency_names():
     df_cur = sr.str.split(pat=" - ",expand=True).rename({0:'currency_code',1:'currency_name'},axis=1)
     return df_cur
 
+#tests passed
 def create_dim_currency(dict_of_df,names=scrape_currency_names()):
     df_cur = dict_of_df['currency'].drop(labels=['created_at', 'last_updated'], axis=1)
-    dim_cur = pd.merge(df_cur,names,left_on='currency_code',right_on='currency_code',how='inner').set_index('currency_id')
-    print(dim_cur)
+    dim_cur = pd.merge(df_cur,names,left_on='currency_code',right_on='currency_code',how='inner')
     return dim_cur
+
 #tests passed
 def create_dim_payment_type(dict_of_df):
     df_payment_type = dict_of_df["payment_type"]
