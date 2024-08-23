@@ -4,7 +4,6 @@ from unittest.mock import patch
 from datetime import datetime as dt
 
 
-
 class TestCreateDimDesign:
     def test_dim_design_returns_dataframe(self):
         d = {
@@ -135,7 +134,6 @@ class TestCreateDimCounterparty:
 
 
 class TestCreateDimCurrency:
-
     def test_dim_currency_returns_columns_and_values(self):
         nones = [None, None, None]
         d = {
@@ -246,4 +244,3 @@ class TestCreateDimTransaction:
         }
         result = create_dim_transaction(dict_df)
         assert list(result.columns) == ["transaction_id", "some_other_id"]
-
