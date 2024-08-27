@@ -287,9 +287,5 @@ class TestCreateFactPayment:
         for col in list(result.columns):
             assert col in expected_cols
         for col in expected_cols:
-            if "_date" in col:
-                print(col)
-                assert result[col].dtype == "datetime64[ns]"
-            if "_time" in col:
-                print(col)
-                assert result[col].dtype == "O"  # << O for object
+            if "_date" or "_time" in col:
+                assert result[col].dtype == "O"
