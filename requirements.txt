@@ -30,5 +30,6 @@ Werkzeug==3.0.3
 xmltodict==0.13.0
 s3fs 
 pandas
-bs4
 pyarrow
+SQLAlchemy
+bs4

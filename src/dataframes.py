@@ -28,6 +28,7 @@ def create_fact_sales_order(dict_of_df):
         df_sales["last_updated"].dt.date, format="%Y-%m-%d"
     )
     df_sales["last_updated_time"] = df_sales["last_updated"].dt.floor("s").dt.time
+
     df_sales["agreed_delivery_date"] = pd.to_datetime(
         df_sales["agreed_delivery_date"], format="%Y-%m-%d"
     )
