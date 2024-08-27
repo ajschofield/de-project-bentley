@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from src.dataframes import *
+from dataframes import *
 from botocore.exceptions import ClientError
 from pg8000.native import Connection, InterfaceError
 from datetime import datetime
@@ -207,5 +207,10 @@ def list_existing_s3_files(bucket_name, client=boto3.client("s3")):
 
     except ClientError as e:
         logger.error(f"Error listing S3 objects: {e}")
+        raise e
 
     return existing_files
+
+
+if __name__ == "__main__":
+    lambda_handler({}, "")
