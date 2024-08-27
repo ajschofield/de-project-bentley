@@ -63,6 +63,7 @@ class TestLambdaHandler:
 
 
 
+
 class TestRetrieveSecrets:
     def test_retrieve_secrets_returns_dictionary(self, mock_sm_client):
         secret = {
