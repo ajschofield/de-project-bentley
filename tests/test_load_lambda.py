@@ -31,13 +31,28 @@ def mock_sm_client(aws_credentials):
         yield boto3.client("secretsmanager")
 
 
-@pytest.fixture(scope="class")
-def mock_connect_db(mocker):
-    return mocker.patch("src.load_lambda.connect_to_db_and_return_engine")
-
-
 class TestLambdaHandler:
-    pass
+    def test_lambda_handler_returns_success(self, mocker):
+        mocker.patch(
+            "src.load_lambda.upload_dfs_to_database",
+            return_value={"uploaded": ["table_one", "table_two"]},
+        )
+        result = lambda_handler(None, None)
+        assert result["statusCode"] == 200
+        assert "table_one" in result["body"]
+        assert "table_two" in result["body"]
+
+    def test_lambda_handler_does_not_upload_anything(self, mocker):
+        mocker.patch(
+            "src.load_lambda.upload_dfs_to_database",
+            return_value={"uploaded": []},
+        )
+        result = lambda_handler(None, None)
+        assert result["statusCode"] == 200
+        assert "No dataframes were uploaded" in result["body"]
+
+    def test_lambda_handler_returns_exception(self, mocker):
+        pass
 
 
 class TestRetrieveSecrets:
