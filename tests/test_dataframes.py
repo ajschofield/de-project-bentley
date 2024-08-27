@@ -244,3 +244,44 @@ class TestCreateDimTransaction:
         }
         result = create_dim_transaction(dict_df)
         assert list(result.columns) == ["transaction_id", "some_other_id"]
+
+
+class TestCreateFactPayment:
+    def test_returns_correct_columns_payment(self):
+        dict_df = {
+            "payment": pd.DataFrame(
+                data=[
+                    [
+                        dt(2020, 5, 17, 6, 15, 20),
+                        dt(2020, 5, 20, 8, 19, 30),
+                        1,
+                        "SE18 9QO",
+                        "2020-7-16",
+                    ]
+                ],
+                columns=[
+                    "created_at",
+                    "last_updated",
+                    "payment_id",
+                    "some_other_id",
+                    "payment_date",
+                ],
+            )
+        }
+        expected_cols = [
+            "payment_record_id",
+            "created_date",
+            "created_time",
+            "last_updated_date",
+            "last_updated_time",
+            "payment_date",
+            "payment_id",
+            "some_other_id",
+        ]
+        result = create_fact_payment(dict_df)
+        assert isinstance(result, pd.DataFrame)
+        for col in list(result.columns):
+            assert col in expected_cols
+        for col in expected_cols:
+            if "date" in col:
+                assert result[col].dtype == "datetime64[ns]"
