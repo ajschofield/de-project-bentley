@@ -161,7 +161,7 @@ def create_dim_location(dict_of_df):
 
 
 def create_dim_counterparty(dict_of_df):
-    df_prefixed_address = dict_of_df["address"].add_prefix(
+    df_prefixed_address = dict_of_df["address"].drop(labels=["created_at", "last_updated"], axis=1).add_prefix(
         "counterparty_legal_", axis=1
     )
     df_cp = pd.merge(
@@ -169,10 +169,10 @@ def create_dim_counterparty(dict_of_df):
         df_prefixed_address,
         left_on="legal_address_id",
         right_on="counterparty_legal_address_id",
-        how="outer",
+        how="inner",
     )
     df_cp.drop(
-        columns=["legal_address_id", "counterparty_legal_address_id"], inplace=True
+        columns=["legal_address_id", "counterparty_legal_address_id", ], inplace=True
     )
     return df_cp
 
