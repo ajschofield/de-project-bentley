@@ -49,7 +49,6 @@ def retrieve_secrets(client=None, secret_name=None):
     if client == None:
         client = session.client(service_name="secretsmanager", region_name=region_name)
 
-
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
         print(get_secret_value_response)
@@ -66,9 +65,12 @@ def retrieve_secrets(client=None, secret_name=None):
 # connect to database, slightly different way of doing it, to allow manipulation through pandas
 
 
-def connect_to_db_and_return_engine():
+def connect_to_db_and_return_engine(sm_secret=None):
+    if sm_secret is None:
+        sm_secret = retrieve_secrets()
+
     try:
-        secrets = json.loads(retrieve_secrets())
+        secrets = json.loads(sm_secret)
         host = secrets["host"]
         port = secrets["port"]
         user = secrets["user"]
@@ -197,6 +199,7 @@ def upload_dfs_to_database():
             logger.error(f"{file_name} does not correspond with table in database")
     db_engine.dispose()
     return upload_status
+
 
 if __name__ == "__main__":
     lambda_handler(None, None)
