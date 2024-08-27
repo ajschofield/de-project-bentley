@@ -115,9 +115,9 @@ def create_dim_location(dict_of_df):
     df_loc = (
         dict_of_df["address"]
         .drop(labels=["created_at", "last_updated"], axis=1)
-        .rename(columns={"address_id": "location_id"})
+        .rename(columns={"address_id": "location_id"}))
     return df_loc
-
+    
 
 
 def create_dim_counterparty(dict_of_df):

@@ -5,10 +5,11 @@ import logging
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from src.dataframes import *
+from dataframes import *
 from botocore.exceptions import ClientError
 from pg8000.native import Connection, InterfaceError
 from datetime import datetime
+
 
 
 class DBConnectionException(Exception):
