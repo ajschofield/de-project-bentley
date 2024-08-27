@@ -1,7 +1,7 @@
 from src.transform_lambda import (
     read_from_s3_subfolder_to_df,
     list_existing_s3_files,
-    bucket_name,
+    bucket_name, process_to_parquet_and_upload_to_s3
 )
 from moto import mock_aws
 import pytest
@@ -153,3 +153,38 @@ class TestBucketName:
         bucket2 = bucket_name('dummy_transform_buc', s3_client)
         assert bucket2 == 'dummy_transform_buc'
         
+
+    def test_recieves_error_when_bucket_doesnt_exist(self, mock_extract_bucket, s3_client):
+        s3_client.delete_bucket(Bucket='dummy_extract_buc')
+        with pytest.raises(ValueError):
+            bucket_name('dummy_extract_buc', s3_client)
+
+
+
+
+
+
+class TestProcessToParquetUploadS3:
+    def test_func_uploads_to_s3(self, mock_transform_bucket, s3_client):
+
+        expected_cars_df = pd.DataFrame(
+            np.array(
+                [
+                    ["Truck", "Chevrolet", "Grey"],
+                    ["Convertible", "Mercedes", "Red"],
+                    ["Van", "Volkswagen", "Blue"],
+                ]
+            ),
+            columns=["Car_type", "Brand", "Colour"],
+        )
+        mock_dim_dict = {'car_data': expected_cars_df}
+
+        response = process_to_parquet_and_upload_to_s3([], mock_dim_dict, {}, mock_transform_bucket, s3_client)
+
+
+        assert response == {"uploaded": ["car_data"], "not_uploaded": []}
+
+
+
+
+
