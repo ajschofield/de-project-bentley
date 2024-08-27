@@ -35,7 +35,7 @@ class TestLambdaHandler:
     def test_lambda_handler_returns_success(self, mocker):
         mocker.patch(
             "src.load_lambda.upload_dfs_to_database",
-            return_value={"uploaded": ["table_one", "table_two"]},
+            return_value={"uploaded": ["table_one", "table_two"], "not_uploaded": []},
         )
         result = lambda_handler(None, None)
         assert result["statusCode"] == 200
@@ -45,14 +45,20 @@ class TestLambdaHandler:
     def test_lambda_handler_does_not_upload_anything(self, mocker):
         mocker.patch(
             "src.load_lambda.upload_dfs_to_database",
-            return_value={"uploaded": []},
+            return_value={"uploaded": [], "not_uploaded": []},
         )
         result = lambda_handler(None, None)
         assert result["statusCode"] == 200
         assert "No dataframes were uploaded" in result["body"]
 
     def test_lambda_handler_returns_exception(self, mocker):
-        pass
+        mocker.patch(
+            "src.load_lambda.upload_dfs_to_database",
+            return_value={"test": []},
+        )
+
+        with pytest.raises(Exception):
+            lambda_handler(None, None)
 
 
 class TestRetrieveSecrets:

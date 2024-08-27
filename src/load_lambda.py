@@ -23,18 +23,21 @@ logging.getLogger("botocore").setLevel(logging.INFO)
 def lambda_handler(event, context):
     try:
         uploaded_tables = upload_dfs_to_database()
-        if not uploaded_tables["uploaded"]:
+        if uploaded_tables["not_uploaded"]:
             return {
                 "statusCode": 200,
                 "body": json.dumps("No dataframes were uploaded."),
             }
-        return {
-            "statusCode": 200,
-            "body": json.dumps(
-                f"""The following dataframes were uploaded successfully: 
-                {uploaded_tables["uploaded"]} ."""
-            ),
-        }
+
+        if uploaded_tables["uploaded"]:
+            return {
+                "statusCode": 200,
+                "body": json.dumps(
+                    f"""The following dataframes were uploaded successfully: 
+                    {uploaded_tables["uploaded"]} ."""
+                ),
+            }
+
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)
         return {"statusCode": 500, "body": json.dumps("Internal server error.")}
