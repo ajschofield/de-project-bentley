@@ -5,7 +5,6 @@ import pyarrow.parquet as pq
 from io import BytesIO
 import logging
 import json
-from src.extract_lambda import retrieve_secrets
 from sqlalchemy import create_engine
 
 
@@ -169,7 +168,7 @@ def upload_dfs_to_database():
                     table_name,
                     con=db_engine,
                     schema="project_team_2",
-                    if_exists="overwrite",
+                    if_exists="append",
                     index=False,
                 )
                 upload_status["uploaded"].append(table_name)
@@ -183,7 +182,7 @@ def upload_dfs_to_database():
                     table_name,
                     con=db_engine,
                     schema="project_team_2",
-                    if_exists="overwrite",
+                    if_exists="append",
                     index=False,
                 )
                 upload_status["uploaded"].append(table_name)
@@ -195,3 +194,6 @@ def upload_dfs_to_database():
             logger.error(f"{file_name} does not correspond with table in database")
     db_engine.dispose()
     return upload_status
+
+if __name__ == "__main__":
+    lambda_handler(None, None)
