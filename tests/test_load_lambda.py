@@ -79,14 +79,14 @@ class TestRetrieveSecrets:
 
         mock_sm_client.create_secret(Name=secret_name, SecretString=json.dumps(secret))
 
-        result = retrieve_secrets(mock_sm_client, secret_name)
+        result = json.loads(retrieve_secrets(mock_sm_client, secret_name))
 
         assert isinstance(result, dict)
 
     def test_retrieve_secrets_returns_correct_keys_and_values(self, mock_sm_client):
         secret_name = "test_secret"
 
-        result = retrieve_secrets(mock_sm_client, secret_name)
+        result = json.loads(retrieve_secrets(mock_sm_client, secret_name))
 
         assert result["user"] == "test_user_id"
         assert result["password"] == "test_password"
