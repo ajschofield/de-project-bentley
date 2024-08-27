@@ -183,4 +183,7 @@ class TestConvertParquetToDfs:
 
 
 class TestUploadDfsToDatabase:
+    # Full success test
+    # Partial success test
+    # Failure test
     pass
