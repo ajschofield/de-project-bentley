@@ -3,6 +3,7 @@ import pyarrow.parquet as pq
 from io import BytesIO
 from moto import mock_aws
 import boto3
+import botocore.exceptions
 import os
 import pytest
 from src.load_lambda import *
@@ -29,10 +30,6 @@ def mock_sm_client(aws_credentials):
         yield boto3.client("secretsmanager")
 
 
-@pytest.fixture
-def mock_parquet_file(mocker):
-    return mocker.patch("src.load_lambda.convert_parquet_files_to_dfs")
-
 class TestLambdaHandler:
     pass
 
@@ -58,6 +55,19 @@ class TestRetrieveSecrets:
 
         assert isinstance(result, dict)
 
+    def test_retrieve_secrets_returns_correct_keys_and_values(self, mock_sm_client):
+        secret_name = "test_secret"
+
+        result = retrieve_secrets(mock_sm_client, secret_name)
+
+        assert result["user"] == "test_user_id"
+        assert result["password"] == "test_password"
+
+    def test_retrieve_secrets_returns_client_error_if_no_secret(self, mock_sm_client):
+        secret_name = "another_test_secret"
+
+        with pytest.raises(botocore.exceptions.ClientError) as error:
+            retrieve_secrets(mock_sm_client, secret_name)
 
 
 class TestConnectToDBAndReturnEngine:
@@ -113,3 +123,6 @@ class TestConvertParquetToDfs:
 
 def mock_connect_db(mocker):
     return mocker.patch("src.load_lambda.connect_to_db_and_return_engine")
+
+class TestUploadDfsToDatabase:
+    pass
