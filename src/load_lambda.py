@@ -5,6 +5,7 @@ import pyarrow.parquet as pq
 from io import BytesIO
 import logging
 import json
+import traceback
 from sqlalchemy import create_engine
 
 
@@ -28,8 +29,7 @@ def lambda_handler(event, context):
                 "statusCode": 200,
                 "body": json.dumps("No dataframes were uploaded."),
             }
-
-        if uploaded_tables["uploaded"]:
+        elif uploaded_tables["uploaded"]:
             return {
                 "statusCode": 200,
                 "body": json.dumps(
@@ -37,10 +37,12 @@ def lambda_handler(event, context):
                     {uploaded_tables["uploaded"]} ."""
                 ),
             }
-
+        else:
+            logger.error(f"error")
+            return {"error"}
     except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
-        return {"statusCode": 500, "body": json.dumps("Internal server error.")}
+        logger.error({e})
+        return {"statusCode": 500, "body": {e}}
 
 
 def retrieve_secrets(client=None, secret_name=None):
