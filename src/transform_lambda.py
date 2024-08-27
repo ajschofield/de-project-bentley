@@ -1,3 +1,4 @@
+from src.dataframes import *
 import json
 import boto3
 import re
@@ -5,7 +6,6 @@ import logging
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from dataframes import *
 from botocore.exceptions import ClientError
 from pg8000.native import Connection, InterfaceError
 from datetime import datetime
@@ -183,13 +183,18 @@ def read_from_s3_subfolder_to_df(tables, bucket, client=boto3.client("s3")):
 
 
 def bucket_name(bucket_prefix, client=boto3.client("s3")):
+    # response = client.list_buckets()
+    # for bucket in response["Buckets"]:
+    #     if bucket_prefix in bucket["Name"]:
+    #         return bucket["Name"]
+    
+    
     response = client.list_buckets()
     bucket_filter = [
-        bucket["Name"]
-        for bucket in response["Buckets"]
-        if bucket_prefix in bucket["Name"]
-    ]
-
+            bucket["Name"]
+            for bucket in response["Buckets"]
+            if bucket_prefix in bucket["Name"]
+        ]
     return bucket_filter[0]
 
 
