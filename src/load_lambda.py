@@ -40,16 +40,19 @@ def lambda_handler(event, context):
         return {"statusCode": 500, "body": json.dumps("Internal server error.")}
 
 
-def retrieve_secrets():
-    secret_name = "bentley-RDS-credentials"
+def retrieve_secrets(client=None, secret_name=None):
+    session = boto3.session.Session()
     region_name = "eu-west-2"
 
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name=region_name)
+    if secret_name == None:
+        secret_name = "bentley-RDS-credentials"
+    if client == None:
+        client = session.client(service_name="secretsmanager", region_name=region_name)
+
 
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+        print(get_secret_value_response)
     except ClientError as e:
         logger.error(f"Failed to retrieve secret {secret_name}: {str(e)}")
         raise e
@@ -57,7 +60,7 @@ def retrieve_secrets():
         logger.error(f"Secret {secret_name} does not contain a SecretString")
         raise ValueError(f"Secret {secret_name} does not contain a SecretString")
 
-    return get_secret_value_response["SecretString"]
+    return json.loads(get_secret_value_response["SecretString"])
 
 
 # connect to database, slightly different way of doing it, to allow manipulation through pandas
