@@ -211,3 +211,6 @@ def list_existing_s3_files(bucket_name, client=boto3.client("s3")):
         raise e
 
     return existing_files
+
+if __name__ == '__main__':
+    lambda_handler({}, '')

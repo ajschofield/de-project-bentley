@@ -71,14 +71,12 @@ def create_fact_purchase_orders(dict_of_df):
 def create_fact_payment(dict_of_df):
     df_payment = dict_of_df["payment"]
     df_payment.index.name = "payment_record_id"
-    df_payment["created_date"] = pd.to_datetime(
-        df_payment["created_at"]).dt.date
-    df_payment["created_time"] = pd.to_datetime(
-        df_payment["created_at"]).dt.time
-    df_payment["last_updated_date"] = pd.to_datetime(
-        df_payment["last_updated"]).dt.date
-    df_payment["last_updated_time"] = pd.to_datetime(
-        df_payment["last_updated"]).dt.time
+    df_payment["created_date"] = df_payment["created_at"].date()
+    df_payment["created_time"] = df_payment["created_at"].time
+    df_payment["last_updated_date"] = df_payment["last_updated"].date()
+    df_payment["last_updated_time"] = df_payment["last_updated"].time
+    df_payment["payment_date"] = pd.to_datetime(
+        df_payment["payment_date"], format="%Y-%m-%d")
     fact_payment = df_payment.loc[
         :,
         [
