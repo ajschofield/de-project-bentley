@@ -64,7 +64,7 @@ def retrieve_secrets(client=None, secret_name=None):
         logger.error(f"Secret {secret_name} does not contain a SecretString")
         raise ValueError(f"Secret {secret_name} does not contain a SecretString")
 
-    return json.loads(get_secret_value_response["SecretString"])
+    return get_secret_value_response["SecretString"]
 
 
 # connect to database, slightly different way of doing it, to allow manipulation through pandas
@@ -72,10 +72,10 @@ def retrieve_secrets(client=None, secret_name=None):
 
 def connect_to_db_and_return_engine(sm_secret=None):
     if sm_secret is None:
-        sm_secret = retrieve_secrets()
+        sm_secret = json.loads(retrieve_secrets())
 
     try:
-        secrets = json.loads(sm_secret)
+        secrets = sm_secret
         host = secrets["host"]
         port = secrets["port"]
         user = secrets["user"]
@@ -171,13 +171,14 @@ def upload_dfs_to_database():
     ]
 
     for file_name, df in dict_of_dfs.items():
+        print(df)
         if file_name in immutable_df_dict:
             table_name = file_name.split(".")[0]
+            print(table_name, "<<<<<")
             try:
                 df.to_sql(
                     table_name,
                     con=db_engine,
-                    schema="project_team_2",
                     if_exists="append",
                     index=False,
                 )
