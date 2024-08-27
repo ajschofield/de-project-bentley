@@ -5,13 +5,7 @@ from moto import mock_aws
 import boto3
 import os
 import pytest
-from src.load_lambda import (
-    lambda_handler,
-    connect_to_db_and_return_engine,
-    get_transform_bucket,
-    convert_parquet_files_to_dfs,
-    upload_dfs_to_database,
-)
+from src.load_lambda import *
 
 
 @pytest.fixture(scope="class")
@@ -27,14 +21,43 @@ def aws_credentials():
 def mock_s3_client(aws_credentials):
     with mock_aws():
         yield boto3.client("s3")
+        
 
+@pytest.fixture(scope="class")
+def mock_sm_client(aws_credentials):
+    with mock_aws():
+        yield boto3.client("secretsmanager")
+
+
+@pytest.fixture
+def mock_parquet_file(mocker):
+    return mocker.patch("src.load_lambda.convert_parquet_files_to_dfs")
 
 class TestLambdaHandler:
     pass
 
 
 class TestRetrieveSecrets:
-    pass
+    def test_retrieve_secrets_returns_dictionary(self, mock_sm_client):
+        secret = {
+            "cohort_id": "test_cohort_id",
+            "user": "test_user_id",
+            "password": "test_password",
+            "host": "test_host",
+            "database": "test_database",
+            "port": "test_port",
+        }
+
+        secret_name = "test_secret"
+
+        mock_sm_client.create_secret(
+            Name=secret_name, SecretString=json.dumps(secret)
+        )
+
+        result = retrieve_secrets(mock_sm_client, secret_name)
+
+        assert isinstance(result, dict)
+
 
 
 class TestConnectToDBAndReturnEngine:
@@ -88,6 +111,5 @@ class TestConvertParquetToDfs:
     #     assert "dim_staff" in result
 
 
-@pytest.fixture
-def mock_parquet_file(mocker):
-    return mocker.patch(src.load_lambda.convert_parquet_files_to_dfs())
+def mock_connect_db(mocker):
+    return mocker.patch("src.load_lambda.connect_to_db_and_return_engine")
