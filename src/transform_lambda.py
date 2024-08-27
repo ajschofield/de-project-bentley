@@ -117,7 +117,7 @@ def process_to_parquet_and_upload_to_s3(
             parquet_file = df.to_parquet(
                 f"{table_name}.parquet", engine="pyarrow"
             )  # or fastparquet
-            client.upload_file(parquet_file, bucket, f"{table_name}.parquet")
+            client.upload_file(f"{table_name}.parquet", bucket, f"{table_name}.parquet") #changed parquet_file variable to the file name
             status["uploaded"].append(table_name)
 
     for table_name, df in mutable_df_dict.items():
@@ -127,7 +127,7 @@ def process_to_parquet_and_upload_to_s3(
         parquet_file = df.to_parquet(
             f"{table_name}.parquet", engine="pyarrow"
         )  # or fastparquet
-        client.upload_file(parquet_file, bucket, s3_key)
+        client.upload_file(f"{table_name}.parquet", bucket, s3_key)
         status["uploaded"].append(table_name)
 
     return status
@@ -203,7 +203,7 @@ def list_existing_s3_files(bucket_name, client=boto3.client("s3")):
             existing_files = [obj["Key"] for obj in response["Contents"]]
         else:
             logger.error("The bucket is empty")
-            return None
+            return [] #changed from None to [] so it is an iterable
 
     except ClientError as e:
         logger.error(f"Error listing S3 objects: {e}")
