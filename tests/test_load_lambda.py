@@ -7,6 +7,7 @@ import botocore.exceptions
 import os
 import pytest
 from src.load_lambda import *
+import tempfile
 
 
 @pytest.fixture(scope="class")
@@ -22,12 +23,17 @@ def aws_credentials():
 def mock_s3_client(aws_credentials):
     with mock_aws():
         yield boto3.client("s3")
-        
+
 
 @pytest.fixture(scope="class")
 def mock_sm_client(aws_credentials):
     with mock_aws():
         yield boto3.client("secretsmanager")
+
+
+@pytest.fixture(scope="class")
+def mock_connect_db(mocker):
+    return mocker.patch("src.load_lambda.connect_to_db_and_return_engine")
 
 
 class TestLambdaHandler:
@@ -47,9 +53,7 @@ class TestRetrieveSecrets:
 
         secret_name = "test_secret"
 
-        mock_sm_client.create_secret(
-            Name=secret_name, SecretString=json.dumps(secret)
-        )
+        mock_sm_client.create_secret(Name=secret_name, SecretString=json.dumps(secret))
 
         result = retrieve_secrets(mock_sm_client, secret_name)
 
@@ -71,7 +75,17 @@ class TestRetrieveSecrets:
 
 
 class TestConnectToDBAndReturnEngine:
-    pass
+    def test_returns_unsuccessful_connection_when_wrong_credentials(self):
+        sm_secret = {
+            "host": "host",
+            "port": "port",
+            "user": "user",
+            "password": "password",
+            "database": "database",
+        }
+
+        with pytest.raises(Exception):
+            connect_to_db_and_return_engine(json.dumps(sm_secret))
 
 
 class TestGetTransformBucket:
@@ -120,9 +134,38 @@ class TestConvertParquetToDfs:
     #     result = convert_parquet_files_to_dfs(bucket_name="transform_bucket", client=mock_s3_client)
     #     assert "dim_staff" in result
 
+    def test_function_returns_dictionary_with_file_key_and_dataframe(
+        self, mock_s3_client
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = {
+                "test": ["Hello", "Bye"],
+                "design_id": ["Hello", "Bye"],
+                "design_name": ["Hello", "Bye"],
+                "file_name": ["Hello", "Bye"],
+                "file_location": ["Hello", "Bye"],
+                "Hello": ["Hello", "Bye"],
+            }
 
-def mock_connect_db(mocker):
-    return mocker.patch("src.load_lambda.connect_to_db_and_return_engine")
+            test_df = pd.DataFrame(data=d)
+
+            path = os.path.join(tmp, "test_parquet.parquet")
+
+            test_df.to_parquet(path, engine="pyarrow")
+
+            with open(path, "rb") as p:
+                mock_s3_client.put_object(
+                    Bucket="transform_bucket", Key="test_parquet.parquet", Body=p.read()
+                )
+
+            result = convert_parquet_files_to_dfs(
+                bucket_name="transform_bucket", client=mock_s3_client
+            )
+
+            assert "test_parquet.parquet" in result
+
+            pd.testing.assert_frame_equal(result["test_parquet.parquet"], test_df)
+
 
 class TestUploadDfsToDatabase:
     pass
