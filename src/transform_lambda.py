@@ -11,7 +11,6 @@ from pg8000.native import Connection, InterfaceError
 from datetime import datetime
 
 
-
 class DBConnectionException(Exception):
     """Wraps pg8000.native Error or DatabaseError."""
 
@@ -212,5 +211,6 @@ def list_existing_s3_files(bucket_name, client=boto3.client("s3")):
 
     return existing_files
 
-if __name__ == '__main__':
-    lambda_handler({}, '')
+
+if __name__ == "__main__":
+    lambda_handler({}, "")
