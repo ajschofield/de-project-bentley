@@ -20,6 +20,7 @@ import requests
 def create_fact_sales_order(dict_of_df):
     df_sales = dict_of_df["sales_order"]
     df_sales.index.name = "sales_record_id"
+<<<<<<< HEAD
     df_sales["created_date"] = df_sales["created_at"].astype("datetime64[ns]").dt.date
     df_sales["created_time"] = (
         df_sales["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
@@ -29,6 +30,15 @@ def create_fact_sales_order(dict_of_df):
     )
     df_sales["last_updated_time"] = (
         df_sales["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
+=======
+    df_sales["created_date"] = pd.to_datetime(df_sales["created_at"], format="%Y-%m-%d")
+    df_sales["created_time"] = pd.to_datetime(df_sales["created_at"], format="%H-%M-%S")
+    df_sales["last_updated_date"] = pd.to_datetime(
+        df_sales["last_updated"], format="%Y-%m-%d"
+    )
+    df_sales["last_updated_time"] = pd.to_datetime(
+        df_sales["last_updated"], format="%H-%M-%S"
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
     )
     df_sales["agreed_delivery_date"] = pd.to_datetime(
         df_sales["agreed_delivery_date"], format="%Y-%m-%d"
@@ -36,7 +46,11 @@ def create_fact_sales_order(dict_of_df):
     df_sales["agreed_payment_date"] = pd.to_datetime(
         df_sales["agreed_payment_date"], format="%Y-%m-%d"
     )
+<<<<<<< HEAD
     df_sales = df_sales.drop(labels=["created_at", "last_updated"], axis=1)
+=======
+    df_sales.drop(labels=["created_at", "last_updated"], axis=1, inplace=True)
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
     df_sales.reset_index(inplace=True)
     return df_sales
 
@@ -47,6 +61,7 @@ def create_fact_sales_order(dict_of_df):
 def create_fact_purchase_orders(dict_of_df):
     df_po = dict_of_df["purchase_order"]
     df_po.index.name = "purchase_record_id"
+<<<<<<< HEAD
     df_po["created_date"] = df_po["created_at"].astype("datetime64[ns]").dt.date
     df_po["created_time"] = (
         df_po["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
@@ -54,6 +69,15 @@ def create_fact_purchase_orders(dict_of_df):
     df_po["last_updated_date"] = df_po["last_updated"].astype("datetime64[ns]").dt.date
     df_po["last_updated_time"] = (
         df_po["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
+=======
+    df_po["created_date"] = pd.to_datetime(df_po["created_at"], format="%Y-%m-%d")
+    df_po["created_time"] = pd.to_datetime(df_po["created_at"], format="%H-%M-%S")
+    df_po["last_updated_date"] = pd.to_datetime(
+        df_po["last_updated"], format="%Y-%m-%d"
+    )
+    df_po["last_updated_time"] = pd.to_datetime(
+        df_po["last_updated"], format="%H-%M-%S"
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
     )
     df_po["agreed_delivery_date"] = pd.to_datetime(
         df_po["agreed_delivery_date"], format="%Y-%m-%d"
@@ -61,7 +85,11 @@ def create_fact_purchase_orders(dict_of_df):
     df_po["agreed_payment_date"] = pd.to_datetime(
         df_po["agreed_payment_date"], format="%Y-%m-%d"
     )
+<<<<<<< HEAD
     df_po = df_po.drop(labels=["created_at", "last_updated"], axis=1)
+=======
+    df_po.drop(labels=["created_at", "last_updated"], axis=1, inplace=True)
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
     df_po.reset_index(inplace=True)
     return df_po
 
@@ -72,6 +100,7 @@ def create_fact_purchase_orders(dict_of_df):
 def create_fact_payment(dict_of_df):
     df_payment = dict_of_df["payment"]
     df_payment.index.name = "payment_record_id"
+<<<<<<< HEAD
     df_payment["created_date"] = (
         df_payment["created_at"].astype("datetime64[ns]").dt.date
     )
@@ -83,11 +112,28 @@ def create_fact_payment(dict_of_df):
     )
     df_payment["last_updated_time"] = (
         df_payment["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
+=======
+    df_payment["created_date"] = pd.to_datetime(
+        df_payment["created_at"], format="%Y-%m-%d"
+    )
+    df_payment["created_time"] = pd.to_datetime(
+        df_payment["created_at"], format="%H-%M-%S"
+    )
+    df_payment["last_updated_date"] = pd.to_datetime(
+        df_payment["last_updated"], format="%Y-%m-%d"
+    )
+    df_payment["last_updated_time"] = pd.to_datetime(
+        df_payment["last_updated"], format="%H-%M-%S"
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
     )
     df_payment["payment_date"] = pd.to_datetime(
         df_payment["payment_date"], format="%Y-%m-%d"
     )
+<<<<<<< HEAD
     df_payment = df_payment.drop(labels=["created_at", "last_updated"], axis=1)
+=======
+    df_payment.drop(labels=["created_at", "last_updated"], axis=1, inplace=True)
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
     df_payment.reset_index(inplace=True)
     return df_payment
 
@@ -143,7 +189,11 @@ def create_dim_date(dict_of_df):
     list_of_date_columns = []
     for df in fact_dfs:
         date_col_names = [
+<<<<<<< HEAD
             col_name for col_name in list(df.columns) if "_date" in col_name
+=======
+            col_name for col_name in list(df.columns) if "date" in col_name
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
         ]
         for col in date_col_names:
             list_of_date_columns.append(df[col])

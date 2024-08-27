@@ -252,6 +252,7 @@ class TestCreateFactPayment:
             "payment": pd.DataFrame(
                 data=[
                     [
+<<<<<<< HEAD
                         dt.strptime(
                             "2022-11-03 14:20:49.962846", "%Y-%m-%d %H:%M:%S.%f"
                         ),
@@ -261,6 +262,13 @@ class TestCreateFactPayment:
                         1,
                         "SE18 9QO",
                         "2020-07-16",
+=======
+                        dt(2020, 5, 17, 6, 15, 20),
+                        dt(2020, 5, 20, 8, 19, 30),
+                        1,
+                        "SE18 9QO",
+                        "2020-7-16",
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
                     ]
                 ],
                 columns=[
@@ -287,5 +295,10 @@ class TestCreateFactPayment:
         for col in list(result.columns):
             assert col in expected_cols
         for col in expected_cols:
+<<<<<<< HEAD
             if "_date" or "_time" in col:
                 assert result[col].dtype == "O"
+=======
+            if "date" in col:
+                assert result[col].dtype == "datetime64[ns]"
+>>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
