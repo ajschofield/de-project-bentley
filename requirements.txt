@@ -32,3 +32,4 @@ s3fs
 pandas
 pyarrow
 SQLAlchemy
+bs4
