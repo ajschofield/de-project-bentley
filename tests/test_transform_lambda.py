@@ -1,17 +1,13 @@
-from src.transform_lambda import (
-    read_from_s3_subfolder_to_df,
-    list_existing_s3_files,
-    bucket_name,
-    process_to_parquet_and_upload_to_s3,
-)
-from moto import mock_aws
+from src.transform_lambda.transform_lambda import read_from_s3_subfolder_to_df, list_existing_s3_files, bucket_name, process_to_parquet_and_upload_to_s3
 import pytest
 import pandas as pd
+from moto import mock_aws
 import os
 import boto3
 from botocore.exceptions import ClientError
 import numpy as np
 
+# /home/lianmei/northcoders/projects/de-project-bentley/src/transform_lambda/transform_lambda.py
 # import caplog
 import logging
 
@@ -171,7 +167,7 @@ class TestBucketName:
 
 
 class TestProcessToParquetUploadS3:
-    def test_func_uploads_to_s3(self, mock_transform_bucket, s3_client):
+    def test_func_doesnt_upoad_if_file_exists(self, mock_transform_bucket, s3_client):
         expected_cars_df = pd.DataFrame(
             np.array(
                 [
@@ -185,7 +181,27 @@ class TestProcessToParquetUploadS3:
         mock_dim_dict = {"car_data": expected_cars_df}
 
         response = process_to_parquet_and_upload_to_s3(
-            [], mock_dim_dict, {}, mock_transform_bucket, s3_client
+            ['car_data'], mock_dim_dict, {}, mock_transform_bucket, s3_client
         )
 
-        assert response == {"uploaded": ["car_data"], "not_uploaded": []}
+        assert response == {"uploaded": [], "not_uploaded": ['car_data']}
+
+    def test_func_uploads_data_if_doesnt_exist(self, mock_transform_bucket, s3_client):
+        expected_flower_df = pd.DataFrame(
+            np.array(
+                [
+                    ["Daisy", "White", "Edible"],
+                    ["Rose", "Red", "Yes"],
+                    ["Daffodil", "Yellow", "No"],
+                ]
+            ),
+            columns=["Flower", "Colour", "Edible"],
+        )
+        mock_dim_dict = {"flower_data": expected_flower_df}
+
+        response = process_to_parquet_and_upload_to_s3(
+            ['car_data'], mock_dim_dict, {}, mock_transform_bucket, s3_client
+        )
+
+        assert response == {"uploaded": ['flower_data'], "not_uploaded": ['car_data']}
+        # assert 
