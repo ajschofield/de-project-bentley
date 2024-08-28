@@ -42,7 +42,7 @@ TABLES = [
     "department",
     "currency",
     "design",
-    "payment_type",
+    "payment_type"
 ]
 
 
@@ -73,7 +73,8 @@ def lambda_handler(event, context):
             "fact_payment": create_fact_payment(dict_of_df),
             "dim_currency": create_dim_currency(dict_of_df),
         }
-
+        print(immutable_df_dict.values())
+        print(mutable_df_dict.values())
         status = process_to_parquet_and_upload_to_s3(
             existing_s3_files, immutable_df_dict, mutable_df_dict, bucket
         )

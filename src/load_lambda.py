@@ -134,6 +134,9 @@ def convert_parquet_files_to_dfs(bucket_name=None, client=None):
                     file_obj = client.get_object(Bucket=bucket_name, Key=file_key)
                     parquet_file = pq.ParquetFile(BytesIO(file_obj["Body"].read()))
                     df = parquet_file.read().to_pandas()
+                    print("df", df)
+                    print("type", type(df))
+                    print(df.columns)
                     dfs[file_key] = df
                 except ClientError as e:
                     logger.error(f"Unable to retrieve S3 object {file_key}: {e}")
@@ -148,7 +151,7 @@ def convert_parquet_files_to_dfs(bucket_name=None, client=None):
     except ClientError as client_error:
         logger.error(f"Unable to list objects: {client_error}")
         raise
-
+    print()
     return dfs
 
 
