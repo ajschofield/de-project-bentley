@@ -118,8 +118,7 @@ def process_to_parquet_and_upload_to_s3(
                 f"{table_name}.parquet", engine="pyarrow"
             )  # or fastparquet
             # changed parquet_file variable to the file name
-            client.upload_file(f"{table_name}.parquet",
-                               bucket, f"{table_name}.parquet")
+            client.upload_file(f"{table_name}.parquet", bucket, f"{table_name}.parquet")
             status["uploaded"].append(table_name)
 
     for table_name, df in mutable_df_dict.items():
@@ -190,8 +189,8 @@ def bucket_name(bucket_prefix, client=boto3.client("s3")):
         bucket["Name"]
         for bucket in response["Buckets"]
         if bucket_prefix in bucket["Name"]
-        ]
-    
+    ]
+
     if not bucket_filter:
         raise ValueError(f"No bucket found with prefix: {bucket_prefix}")
 
