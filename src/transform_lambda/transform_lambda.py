@@ -191,6 +191,9 @@ def bucket_name(bucket_prefix, client=boto3.client("s3")):
         if bucket_prefix in bucket["Name"]
     ]
 
+    if not bucket_filter:
+        raise ValueError(f"No bucket found with prefix: {bucket_prefix}")
+
     return bucket_filter[0]
 
 
