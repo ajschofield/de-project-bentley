@@ -160,11 +160,6 @@ class TestConvertParquetToDfs:
         )
         assert result == {}
 
-    # def test_function_returns_dictionary_with_table_with_file_key():
-    #     # need to mock parquet file and upload to mock bucket
-    #     result = convert_parquet_files_to_dfs(bucket_name="transform_bucket", client=mock_s3_client)
-    #     assert "dim_staff" in result
-
     def test_function_returns_dictionary_with_file_key_and_dataframe(
         self, mock_s3_client
     ):
