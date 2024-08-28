@@ -13,6 +13,7 @@ from src.load_lambda import (
     upload_dfs_to_database,
 )
 import tempfile
+import json
 
 
 @pytest.fixture(scope="class")
