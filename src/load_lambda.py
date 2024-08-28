@@ -164,13 +164,13 @@ def upload_dfs_to_database():
         "dim_date.parquet",  # this needs to be mutable
         "dim_location.parquet",
         "dim_staff.parquet",
-        "dim_design.parquet",
+        "dim_design.parquet"
     ]
     mutable_df_dict = [
         "fact_sales_order",
         "fact_purchase_order",
         "fact_payment",
-        "dim_currency",
+        "dim_currency"
     ]
 
     for file_name, df in dict_of_dfs.items():
@@ -182,6 +182,7 @@ def upload_dfs_to_database():
                 df.to_sql(
                     table_name,
                     con=db_engine,
+                    schema="project_team_2",
                     if_exists="append",
                     index=False,
                 )
