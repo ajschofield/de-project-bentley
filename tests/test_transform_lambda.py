@@ -167,7 +167,7 @@ class TestBucketName:
 
 
 class TestProcessToParquetUploadS3:
-    def test_func_doesnt_upoad_if_file_exists(self, mock_transform_bucket, s3_client):
+    def test_func_doesnt_upload_if_file_exists(self, mock_transform_bucket, s3_client):
         expected_cars_df = pd.DataFrame(
             np.array(
                 [
@@ -181,9 +181,13 @@ class TestProcessToParquetUploadS3:
         mock_dim_dict = {"car_data": expected_cars_df}
 
         response = process_to_parquet_and_upload_to_s3(
-            ['car_data'], mock_dim_dict, {}, mock_transform_bucket, s3_client
+            ['car_data'], mock_dim_dict, {}, "dummy_transform_buc", s3_client
         )
 
+        # keys = s3_client.get_object(
+        #     Bucket='dummy_transform_buc',
+        #     Key='car_data.parquet'
+        # )
         assert response == {"uploaded": [], "not_uploaded": ['car_data']}
 
     def test_func_uploads_data_if_doesnt_exist(self, mock_transform_bucket, s3_client):
@@ -199,9 +203,56 @@ class TestProcessToParquetUploadS3:
         )
         mock_dim_dict = {"flower_data": expected_flower_df}
 
+
         response = process_to_parquet_and_upload_to_s3(
-            ['car_data'], mock_dim_dict, {}, mock_transform_bucket, s3_client
+            ['car_data'], mock_dim_dict, {}, "dummy_transform_buc", s3_client
         )
 
-        assert response == {"uploaded": ['flower_data'], "not_uploaded": ['car_data']}
-        # assert 
+        assert response == {"uploaded": ['flower_data'], "not_uploaded": []}
+        
+    def test_func_uploads_several_files_and_checks_for_parquet_files(self, mock_transform_bucket, s3_client):
+        expected_vegetable_df = pd.DataFrame(
+            np.array(
+                [
+                    ["Carrot", "Orange", "Edible"],
+                    ["Broccoli", "Green", "Yes"],
+                ]
+            ),
+            columns=["Vegetable", "Colour", "Edible"],
+        )
+        
+        expected_meat_df = pd.DataFrame(
+            np.array(
+                [
+                    ["Chicken", "White", "Yes"],
+                    ["Beef", "Red", "No"],
+                ]
+            ),
+            columns=["Meat", "Colour", "Edible"],
+        )
+
+        mock_dim_dict = {"vegetable_data": expected_vegetable_df}
+        mock_fact_dict = {"meat_data": expected_meat_df}
+
+        expected_vegetable_df.to_parquet("vegetable_data.parquet", engine="pyarrow")
+        s3_client.upload_file("vegetable_data.parquet", 'dummy_transform_buc', "vegetable_data.parquet")
+
+        print(f"Type of mock_transform_bucket: {type(mock_transform_bucket)}") 
+        print(f"Type of mock_dim_dict: {type(mock_dim_dict)}")
+        print(f"Type of items in mock_dim_dict: {[type(i) for i in mock_dim_dict.values()]}")
+        print(f"Type of s3_client: {type(s3_client)}")
+
+        response = process_to_parquet_and_upload_to_s3(
+            ['vegetable_data'], mock_dim_dict, mock_fact_dict, "dummy_transform_buc", s3_client
+        )
+
+        assert response == {"uploaded": ['meat_data'], "not_uploaded": ['vegetable_data']}
+
+    def test_func_handles_empty_dicts(self, mock_transform_bucket, s3_client):
+        response = process_to_parquet_and_upload_to_s3(
+            [], {}, {}, 'dummy_transform_buc', s3_client
+        )
+
+        assert response == {"uploaded": [], "not_uploaded": []}
+
+class TestLambdaHandler
