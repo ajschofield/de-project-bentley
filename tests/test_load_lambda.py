@@ -199,7 +199,34 @@ class TestConvertParquetToDfs:
 
 
 class TestUploadDfsToDatabase:
-    # Full success test
-    # Partial success test
-    # Failure test
-    pass
+    def test_function_returns_dictionary_with_uploaded_and_not_uploaded_keys(
+        self, mocker
+    ):
+        mocker.patch(
+            "src.load_lambda.convert_parquet_files_to_dfs",
+            return_value={"dim_counterparty.parquet": pd.DataFrame()},
+        )
+        mocker.patch(
+            "src.load_lambda.connect_to_db_and_return_engine",
+            return_value="test_engine",
+        )
+
+        result = upload_dfs_to_database()
+
+        assert "uploaded" in result
+        assert "not_uploaded" in result
+
+    def test_function_returns_uploaded_and_not_uploaded_tables(self, mocker):
+        mocker.patch(
+            "src.load_lambda.convert_parquet_files_to_dfs",
+            return_value={"dim_counterparty.parquet": pd.DataFrame()},
+        )
+        mocker.patch(
+            "src.load_lambda.connect_to_db_and_return_engine",
+            return_value="test_engine",
+        )
+
+        result = upload_dfs_to_database()
+
+        assert result["uploaded"] == ["dim_counterparty"]
+        assert result["not_uploaded"] == []
