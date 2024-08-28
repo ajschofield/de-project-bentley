@@ -83,18 +83,13 @@ resource "aws_lambda_function" "extract_lambda" {
 # Transform Lambda Function #
 #############################
 
-data "archive_file" "transform_lambda_zip" {
-  type        = "zip"
-  source_file = "${path.module}/../src/transform_lambda.py"
-  output_path = "${path.module}/../transform_function.zip"
-
 
 data "archive_file" "transform_lambda_zip" {
   type        = "zip"
-  source_dir  = "../src/transform_lambda" 
-  output_path = "../transform_lambda.zip"
+  source_dir  = "${path.module}../src/transform_lambda" 
+  output_path = "${path.module}../transform_lambda.zip"
 }
-}
+
 resource "aws_s3_object" "transform_lambda_code" {
   bucket = aws_s3_bucket.lambda_code_bucket.bucket
   key    = "${var.transform_lambda_name}/transform_function.zip"
