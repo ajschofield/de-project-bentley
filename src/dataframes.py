@@ -20,6 +20,28 @@ import requests
 def create_fact_sales_order(dict_of_df):
     df_sales = dict_of_df["sales_order"]
     df_sales.index.name = "sales_record_id"
+
+    df_sales["created_date"] = df_sales["created_at"].astype("datetime64[ns]").dt.date
+    df_sales["created_time"] = (
+        df_sales["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
+    df_sales["last_updated_date"] = (
+        df_sales["last_updated"].astype("datetime64[ns]").dt.date
+    )
+    df_sales["last_updated_time"] = (
+        df_sales["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
+    df_sales["agreed_delivery_date"] = pd.to_datetime(
+        df_sales["agreed_delivery_date"], format="%Y-%m-%d"
+    )
+    df_sales["agreed_payment_date"] = pd.to_datetime(
+        df_sales["agreed_payment_date"], format="%Y-%m-%d"
+    )
+    df_sales = df_sales.drop(labels=["created_at", "last_updated"], axis=1)
+
+    df_sales.reset_index(inplace=True)
+    return df_sales
+
     df_sales["created_date"] = df_sales["created_at"].astype("datetime64[ns]").dt.date
     df_sales["created_time"] = (
         df_sales["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
@@ -88,6 +110,7 @@ def create_fact_payment(dict_of_df):
         df_payment["payment_date"], format="%Y-%m-%d"
     )
     df_payment = df_payment.drop(labels=["created_at", "last_updated"], axis=1)
+
     df_payment.reset_index(inplace=True)
     return df_payment
 
@@ -115,18 +138,24 @@ def create_dim_location(dict_of_df):
 
 
 def create_dim_counterparty(dict_of_df):
-    df_prefixed_address = dict_of_df["address"].add_prefix(
-        "counterparty_legal_", axis=1
+    df_prefixed_address = (
+        dict_of_df["address"]
+        .drop(labels=["created_at", "last_updated"], axis=1)
+        .add_prefix("counterparty_legal_", axis=1)
     )
     df_cp = pd.merge(
         dict_of_df["counterparty"],
         df_prefixed_address,
         left_on="legal_address_id",
         right_on="counterparty_legal_address_id",
-        how="outer",
+        how="inner",
     )
     df_cp.drop(
-        columns=["legal_address_id", "counterparty_legal_address_id"], inplace=True
+        columns=[
+            "legal_address_id",
+            "counterparty_legal_address_id",
+        ],
+        inplace=True,
     )
     return df_cp
 

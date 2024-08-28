@@ -5,7 +5,7 @@ import pyarrow.parquet as pq
 from io import BytesIO
 import logging
 import json
-from src.extract_lambda import retrieve_secrets
+import traceback
 from sqlalchemy import create_engine
 
 
@@ -24,33 +24,39 @@ logging.getLogger("botocore").setLevel(logging.INFO)
 def lambda_handler(event, context):
     try:
         uploaded_tables = upload_dfs_to_database()
-        if not uploaded_tables["uploaded"]:
+        if uploaded_tables["not_uploaded"]:
             return {
                 "statusCode": 200,
                 "body": json.dumps("No dataframes were uploaded."),
             }
-        return {
-            "statusCode": 200,
-            "body": json.dumps(
-                f"""The following dataframes were uploaded successfully: 
-                {uploaded_tables["uploaded"]} ."""
-            ),
-        }
+        elif uploaded_tables["uploaded"]:
+            return {
+                "statusCode": 200,
+                "body": json.dumps(
+                    f"""The following dataframes were uploaded successfully: 
+                    {uploaded_tables["uploaded"]} ."""
+                ),
+            }
+        else:
+            logger.error(f"error")
+            return {"error"}
     except Exception as e:
-        logger.error(f"Error: {e}", exc_info=True)
-        return {"statusCode": 500, "body": json.dumps("Internal server error.")}
+        logger.error({e})
+        return {"statusCode": 500, "body": {e}}
 
 
-def retrieve_secrets():
-    secret_name = "bentley-RDS-credentials"
+def retrieve_secrets(client=None, secret_name=None):
+    session = boto3.session.Session()
     region_name = "eu-west-2"
 
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name=region_name)
+    if secret_name == None:
+        secret_name = "bentley-RDS-credentials"
+    if client == None:
+        client = session.client(service_name="secretsmanager", region_name=region_name)
 
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+        print(get_secret_value_response)
     except ClientError as e:
         logger.error(f"Failed to retrieve secret {secret_name}: {str(e)}")
         raise e
@@ -64,9 +70,12 @@ def retrieve_secrets():
 # connect to database, slightly different way of doing it, to allow manipulation through pandas
 
 
-def connect_to_db_and_return_engine():
+def connect_to_db_and_return_engine(sm_secret=None):
+    if sm_secret is None:
+        sm_secret = json.loads(retrieve_secrets())
+
     try:
-        secrets = json.loads(retrieve_secrets())
+        secrets = sm_secret
         host = secrets["host"]
         port = secrets["port"]
         user = secrets["user"]
@@ -162,14 +171,15 @@ def upload_dfs_to_database():
     ]
 
     for file_name, df in dict_of_dfs.items():
+        print(df)
         if file_name in immutable_df_dict:
             table_name = file_name.split(".")[0]
+            print(table_name, "<<<<<")
             try:
                 df.to_sql(
                     table_name,
                     con=db_engine,
-                    schema="project_team_2",
-                    if_exists="overwrite",
+                    if_exists="append",
                     index=False,
                 )
                 upload_status["uploaded"].append(table_name)
@@ -183,7 +193,7 @@ def upload_dfs_to_database():
                     table_name,
                     con=db_engine,
                     schema="project_team_2",
-                    if_exists="overwrite",
+                    if_exists="append",
                     index=False,
                 )
                 upload_status["uploaded"].append(table_name)
@@ -195,3 +205,7 @@ def upload_dfs_to_database():
             logger.error(f"{file_name} does not correspond with table in database")
     db_engine.dispose()
     return upload_status
+
+
+if __name__ == "__main__":
+    lambda_handler(None, None)
