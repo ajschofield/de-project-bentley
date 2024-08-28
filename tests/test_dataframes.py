@@ -54,7 +54,8 @@ class TestCreateDimStaff:
             "email_address": ["Hello", "Bye"],
             "department_id": ["Hello", "Bye"],
         }
-        test_df = {"staff": pd.DataFrame(data=d), "department": pd.DataFrame(data=d2)}
+        test_df = {"staff": pd.DataFrame(
+            data=d), "department": pd.DataFrame(data=d2)}
         result = create_dim_staff(test_df)
         assert isinstance(result, pd.DataFrame)
 
@@ -71,7 +72,8 @@ class TestCreateDimStaff:
             "email_address": ["Hello", "Bye"],
             "department_id": ["Hello", "Bye"],
         }
-        test_df = {"staff": pd.DataFrame(data=d), "department": pd.DataFrame(data=d2)}
+        test_df = {"staff": pd.DataFrame(
+            data=d), "department": pd.DataFrame(data=d2)}
         result = create_dim_staff(test_df)
         expected_d = {
             "staff_id": ["Hello", "Bye"],
@@ -88,7 +90,8 @@ class TestCreateDimStaff:
 
 class TestCreatePaymentType:
     def test_create_dim_payment_type_returns_correct_columns_and_values(self):
-        d = {"payment_type_id": ["Hello", "Bye"], "payment_type_name": ["Hello", "Bye"]}
+        d = {"payment_type_id": ["Hello", "Bye"],
+             "payment_type_name": ["Hello", "Bye"]}
         test_df = {"payment_type": pd.DataFrame(data=d)}
         result = create_dim_payment_type(test_df)
         expected_columns = ["payment_type_id", "payment_type_name"]
@@ -180,11 +183,13 @@ class TestCreateDimDate:
             index=[0],
         )
         df_two = pd.DataFrame(
-            data={"updated_date": dt(2020, 5, 17), "created_date": dt(2021, 9, 13)},
+            data={"updated_date": dt(2020, 5, 17),
+                  "created_date": dt(2021, 9, 13)},
             index=[0],
         )
         df_three = pd.DataFrame(
-            data={"updated_date": dt(2022, 5, 17), "created_date": dt(2023, 5, 13)},
+            data={"updated_date": dt(2022, 5, 17),
+                  "created_date": dt(2023, 5, 13)},
             index=[0],
         )
         expected_df = pd.DataFrame(
@@ -214,7 +219,8 @@ class TestCreateDimDate:
                     mock_fso.return_value = df_three
                     result = create_dim_date({"dum": 0})
                     result.reset_index(inplace=True, drop=True)
-                    assert result.eq(expected_df, axis="columns").all(axis=None)
+                    assert result.eq(
+                        expected_df, axis="columns").all(axis=None)
 
 
 class TestCreateDimLocation:
@@ -222,7 +228,8 @@ class TestCreateDimLocation:
         dict_df = {
             "address": pd.DataFrame(
                 data=[["some_time", "some_other_time", 1, "SE18 9QO"]],
-                columns=["created_at", "last_updated", "address_id", "postal_code"],
+                columns=["created_at", "last_updated",
+                         "address_id", "postal_code"],
             )
         }
         result = create_dim_location(dict_df)
@@ -252,7 +259,7 @@ class TestCreateFactPayment:
             "payment": pd.DataFrame(
                 data=[
                     [
-<<<<<<< HEAD
+                        << << << < HEAD
                         dt.strptime(
                             "2022-11-03 14:20:49.962846", "%Y-%m-%d %H:%M:%S.%f"
                         ),
@@ -262,13 +269,13 @@ class TestCreateFactPayment:
                         1,
                         "SE18 9QO",
                         "2020-07-16",
-=======
+                        == == ===
                         dt(2020, 5, 17, 6, 15, 20),
                         dt(2020, 5, 20, 8, 19, 30),
                         1,
                         "SE18 9QO",
                         "2020-7-16",
->>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
+                        >>>>>> > 5db3f61(style: format code with Autopep8, Black and Ruff Formatter)
                     ]
                 ],
                 columns=[
@@ -295,10 +302,12 @@ class TestCreateFactPayment:
         for col in list(result.columns):
             assert col in expected_cols
         for col in expected_cols:
-<<<<<<< HEAD
-            if "_date" or "_time" in col:
-                assert result[col].dtype == "O"
-=======
-            if "date" in col:
-                assert result[col].dtype == "datetime64[ns]"
->>>>>>> 5db3f61 (style: format code with Autopep8, Black and Ruff Formatter)
+
+
+<< << << < HEAD
+if "_date" or "_time" in col:
+    assert result[col].dtype == "O"
+== == == =
+if "date" in col:
+    assert result[col].dtype == "datetime64[ns]"
+>>>>>> > 5db3f61(style: format code with Autopep8, Black and Ruff Formatter)
