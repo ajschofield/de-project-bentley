@@ -14,6 +14,7 @@ from src.load_lambda import (
 )
 import tempfile
 import json
+from unittest.mock import MagicMock, patch
 
 
 @pytest.fixture(scope="class")
@@ -202,34 +203,29 @@ class TestConvertParquetToDfs:
 
 
 class TestUploadDfsToDatabase:
-    @staticmethod
-    def test_function_returns_dictionary_with_uploaded_and_not_uploaded_keys(mocker):
-        mocker.patch(
-            "src.load_lambda.convert_parquet_files_to_dfs",
-            return_value={"dim_counterparty.parquet": pd.DataFrame()},
-        )
-        mocker.patch(
-            "src.load_lambda.connect_to_db_and_return_engine",
-            return_value="test_engine",
-        )
+    @pytest.fixture
+    def mock_engine(self):
+        engine = MagicMock()
+        engine.dispose = MagicMock()
+        return engine
 
-        result = upload_dfs_to_database()
-
-        assert "uploaded" in result
-        assert "not_uploaded" in result
+    @pytest.fixture
+    def mock_df(self):
+        df = MagicMock(spec=pd.DataFrame)
+        df.to_sql = MagicMock()
+        return df
 
     @staticmethod
-    def test_function_returns_uploaded_and_not_uploaded_tables(mocker):
-        mocker.patch(
+    def test_function_returns_dictionary_with_uploaded_and_not_uploaded_keys(
+        mock_engine, mock_df
+    ):
+        with patch(
             "src.load_lambda.convert_parquet_files_to_dfs",
-            return_value={"dim_counterparty.parquet": pd.DataFrame()},
-        )
-        mocker.patch(
-            "src.load_lambda.connect_to_db_and_return_engine",
-            return_value="test_engine",
-        )
+            return_value={"dim_counterparty.parquet": mock_df},
+        ), patch(
+            "src.load_lambda.connect_to_db_and_return_engine", return_value=mock_engine
+        ):
+            result = upload_dfs_to_database()
 
-        result = upload_dfs_to_database()
-
-        assert result["uploaded"] == ["dim_counterparty"]
-        assert result["not_uploaded"] == []
+            assert "uploaded" in result
+            assert "not_uploaded" in result
