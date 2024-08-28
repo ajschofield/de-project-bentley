@@ -20,13 +20,13 @@ def aws_credentials():
 
 
 @pytest.fixture(scope="class")
-def mock_s3_client(aws_credentials):
+def mock_s3_client():
     with mock_aws():
         yield boto3.client("s3")
 
 
 @pytest.fixture(scope="class")
-def mock_sm_client(aws_credentials):
+def mock_sm_client():
     with mock_aws():
         yield boto3.client("secretsmanager")
 
