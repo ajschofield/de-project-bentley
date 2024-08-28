@@ -227,7 +227,6 @@ class TestCreateDimDate:
                         expected_df, axis="columns").all(axis=None)
 
 
-
 class TestCreateDimLocation:
     def test_returns_correct_columns_lo(self):
         dict_df = {
@@ -300,7 +299,6 @@ class TestCreateFactPayment:
         for col in list(result.columns):
             assert col in expected_cols
         for col in expected_cols:
-
 
 
 if "_date" or "_time" in col:

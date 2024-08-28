@@ -20,9 +20,8 @@ import requests
 def create_fact_sales_order(dict_of_df):
     df_sales = dict_of_df["sales_order"]
     df_sales.index.name = "sales_record_id"
-    
-    df_sales["created_date"] = df_sales["created_at"].astype(
-        "datetime64[ns]").dt.date
+
+    df_sales["created_date"] = df_sales["created_at"].astype("datetime64[ns]").dt.date
     df_sales["created_time"] = (
         df_sales["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
     )
@@ -32,13 +31,13 @@ def create_fact_sales_order(dict_of_df):
     df_sales["last_updated_time"] = (
         df_sales["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
     )
-    df_sales["agreed_delivery_date"]=pd.to_datetime(
+    df_sales["agreed_delivery_date"] = pd.to_datetime(
         df_sales["agreed_delivery_date"], format="%Y-%m-%d"
     )
-    df_sales["agreed_payment_date"]=pd.to_datetime(
+    df_sales["agreed_payment_date"] = pd.to_datetime(
         df_sales["agreed_payment_date"], format="%Y-%m-%d"
     )
-    df_sales=df_sales.drop(labels=["created_at", "last_updated"], axis=1)
+    df_sales = df_sales.drop(labels=["created_at", "last_updated"], axis=1)
 
     df_sales.reset_index(inplace=True)
     return df_sales
@@ -68,25 +67,23 @@ def create_fact_sales_order(dict_of_df):
 
 
 def create_fact_purchase_orders(dict_of_df):
-    df_po=dict_of_df["purchase_order"]
-    df_po.index.name="purchase_record_id"
-    df_po["created_date"]=df_po["created_at"].astype("datetime64[ns]").dt.date
-    df_po["created_time"]=(
+    df_po = dict_of_df["purchase_order"]
+    df_po.index.name = "purchase_record_id"
+    df_po["created_date"] = df_po["created_at"].astype("datetime64[ns]").dt.date
+    df_po["created_time"] = (
         df_po["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
     )
-    df_po["last_updated_date"]=df_po["last_updated"].astype(
-        "datetime64[ns]").dt.date
-    df_po["last_updated_time"]=(
+    df_po["last_updated_date"] = df_po["last_updated"].astype("datetime64[ns]").dt.date
+    df_po["last_updated_time"] = (
         df_po["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
-
     )
-    df_po["agreed_delivery_date"]=pd.to_datetime(
+    df_po["agreed_delivery_date"] = pd.to_datetime(
         df_po["agreed_delivery_date"], format="%Y-%m-%d"
     )
-    df_po["agreed_payment_date"]=pd.to_datetime(
+    df_po["agreed_payment_date"] = pd.to_datetime(
         df_po["agreed_payment_date"], format="%Y-%m-%d"
     )
-    df_po=df_po.drop(labels=["created_at", "last_updated"], axis=1)
+    df_po = df_po.drop(labels=["created_at", "last_updated"], axis=1)
     df_po.reset_index(inplace=True)
     return df_po
 
@@ -95,26 +92,25 @@ def create_fact_purchase_orders(dict_of_df):
 
 
 def create_fact_payment(dict_of_df):
-    df_payment=dict_of_df["payment"]
-    df_payment.index.name="payment_record_id"
-    df_payment["created_date"]=(
+    df_payment = dict_of_df["payment"]
+    df_payment.index.name = "payment_record_id"
+    df_payment["created_date"] = (
         df_payment["created_at"].astype("datetime64[ns]").dt.date
     )
-    df_payment["created_time"]=(
+    df_payment["created_time"] = (
         df_payment["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
     )
-    df_payment["last_updated_date"]=(
+    df_payment["last_updated_date"] = (
         df_payment["last_updated"].astype("datetime64[ns]").dt.date
     )
-    df_payment["last_updated_time"]=(
-        df_payment["last_updated"].astype(
-            "datetime64[ns]").dt.floor("s").dt.time
+    df_payment["last_updated_time"] = (
+        df_payment["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
     )
-    df_payment["payment_date"]=pd.to_datetime(
+    df_payment["payment_date"] = pd.to_datetime(
         df_payment["payment_date"], format="%Y-%m-%d"
     )
-    df_payment=df_payment.drop(labels=["created_at", "last_updated"], axis=1)
-    
+    df_payment = df_payment.drop(labels=["created_at", "last_updated"], axis=1)
+
     df_payment.reset_index(inplace=True)
     return df_payment
 
@@ -123,7 +119,7 @@ def create_fact_payment(dict_of_df):
 
 
 def create_dim_transaction(dict_of_df):
-    df_transaction=dict_of_df["transaction"].drop(
+    df_transaction = dict_of_df["transaction"].drop(
         labels=["created_at", "last_updated"], axis=1
     )
     return df_transaction
@@ -133,7 +129,7 @@ def create_dim_transaction(dict_of_df):
 
 
 def create_dim_location(dict_of_df):
-    df_loc=(
+    df_loc = (
         dict_of_df["address"]
         .drop(labels=["created_at", "last_updated"], axis=1)
         .rename(columns={"address_id": "location_id"})
@@ -142,10 +138,12 @@ def create_dim_location(dict_of_df):
 
 
 def create_dim_counterparty(dict_of_df):
-    df_prefixed_address=dict_of_df["address"].drop(labels=["created_at", "last_updated"], axis=1).add_prefix(
-        "counterparty_legal_", axis=1
+    df_prefixed_address = (
+        dict_of_df["address"]
+        .drop(labels=["created_at", "last_updated"], axis=1)
+        .add_prefix("counterparty_legal_", axis=1)
     )
-    df_cp=pd.merge(
+    df_cp = pd.merge(
         dict_of_df["counterparty"],
         df_prefixed_address,
         left_on="legal_address_id",
@@ -153,7 +151,11 @@ def create_dim_counterparty(dict_of_df):
         how="inner",
     )
     df_cp.drop(
-        columns=["legal_address_id", "counterparty_legal_address_id", ], inplace=True
+        columns=[
+            "legal_address_id",
+            "counterparty_legal_address_id",
+        ],
+        inplace=True,
     )
     return df_cp
 
@@ -162,7 +164,7 @@ def create_dim_counterparty(dict_of_df):
 
 
 def create_dim_date(dict_of_df):
-    fact_dfs=[
+    fact_dfs = [
         create_fact_payment(dict_of_df),
         create_fact_purchase_orders(dict_of_df),
         create_fact_sales_order(dict_of_df),
@@ -174,16 +176,16 @@ def create_dim_date(dict_of_df):
         ]
         for col in date_col_names:
             list_of_date_columns.append(df[col])
-    sr_date=pd.array(pd.concat(list_of_date_columns), dtype="datetime64[ns]")
-    df_date=pd.DataFrame(data=sr_date, columns=["date_id"])
+    sr_date = pd.array(pd.concat(list_of_date_columns), dtype="datetime64[ns]")
+    df_date = pd.DataFrame(data=sr_date, columns=["date_id"])
     df_date.drop_duplicates(inplace=True)
-    df_date["year"]=df_date["date_id"].dt.year
-    df_date["month"]=df_date["date_id"].dt.month
-    df_date["day"]=df_date["date_id"].dt.day
-    df_date["day_of_week"]=df_date["date_id"].dt.dayofweek
-    df_date["day_name"]=df_date["date_id"].dt.day_name()
-    df_date["month_name"]=df_date["date_id"].dt.month_name()
-    df_date["quarter"]=df_date["date_id"].dt.quarter
+    df_date["year"] = df_date["date_id"].dt.year
+    df_date["month"] = df_date["date_id"].dt.month
+    df_date["day"] = df_date["date_id"].dt.day
+    df_date["day_of_week"] = df_date["date_id"].dt.dayofweek
+    df_date["day_name"] = df_date["date_id"].dt.day_name()
+    df_date["month_name"] = df_date["date_id"].dt.month_name()
+    df_date["quarter"] = df_date["date_id"].dt.quarter
     return df_date
 
 
@@ -191,13 +193,13 @@ def create_dim_date(dict_of_df):
 
 
 def scrape_currency_names():
-    response=requests.get("https://www.xe.com/currency/").content
-    soup=BeautifulSoup(response, "html.parser")
-    currency=[
+    response = requests.get("https://www.xe.com/currency/").content
+    soup = BeautifulSoup(response, "html.parser")
+    currency = [
         item.text for item in soup.findAll("a", attrs={"class": "sc-299dec64-6 fZPTSw"})
     ]
-    sr=pd.Series(currency)
-    df_cur=sr.str.split(pat=" - ", expand=True).rename(
+    sr = pd.Series(currency)
+    df_cur = sr.str.split(pat=" - ", expand=True).rename(
         {0: "currency_code", 1: "currency_name"}, axis=1
     )
     return df_cur
@@ -207,9 +209,8 @@ def scrape_currency_names():
 
 
 def create_dim_currency(dict_of_df, names=scrape_currency_names()):
-    df_cur=dict_of_df["currency"].drop(
-        labels=["created_at", "last_updated"], axis=1)
-    dim_cur=pd.merge(
+    df_cur = dict_of_df["currency"].drop(labels=["created_at", "last_updated"], axis=1)
+    dim_cur = pd.merge(
         df_cur, names, left_on="currency_code", right_on="currency_code", how="inner"
     )
     return dim_cur
@@ -219,9 +220,8 @@ def create_dim_currency(dict_of_df, names=scrape_currency_names()):
 
 
 def create_dim_payment_type(dict_of_df):
-    df_payment_type=dict_of_df["payment_type"]
-    dim_payment_type=df_payment_type.loc[:, [
-        "payment_type_id", "payment_type_name"]]
+    df_payment_type = dict_of_df["payment_type"]
+    dim_payment_type = df_payment_type.loc[:, ["payment_type_id", "payment_type_name"]]
     return dim_payment_type
 
 
@@ -229,8 +229,8 @@ def create_dim_payment_type(dict_of_df):
 
 
 def create_dim_design(dict_of_df):
-    df_design=dict_of_df["design"]
-    dim_design=df_design.loc[
+    df_design = dict_of_df["design"]
+    dim_design = df_design.loc[
         :, ["design_id", "design_name", "file_name", "file_location"]
     ]
     return dim_design
@@ -240,10 +240,10 @@ def create_dim_design(dict_of_df):
 
 
 def create_dim_staff(dict_of_df):
-    staff_department=pd.merge(
+    staff_department = pd.merge(
         dict_of_df["staff"], dict_of_df["department"], on="department_id", how="left"
     )
-    dim_staff=staff_department.loc[
+    dim_staff = staff_department.loc[
         :,
         [
             "staff_id",
