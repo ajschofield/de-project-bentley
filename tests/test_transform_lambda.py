@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 def aws_credentials():
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
-    os.environ["AWS_SECURIT_TOKEN"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_DEFAULT_REGION"] = "eu-west-2"
 
@@ -28,7 +28,6 @@ def aws_credentials():
 def s3_client(aws_credentials):
     with mock_aws():
         yield boto3.client("s3")
-
 
 @pytest.fixture(scope="class")
 def mock_extract_bucket(s3_client):
@@ -46,8 +45,15 @@ def mock_transform_bucket(s3_client):
     )
     return mock_transform_bucket
 
+@pytest.fixture
+def mock_db_connection():
+    with patch('src.transform_lambda.transform_lambda.connect_to_database') as mock_connect:
+        mock_db = MagicMock()
+        mock_connect.return_value = mock_db
+        yield mock_db
+
 @pytest.fixture(scope="function")
-def mock_df_creation_functions():
+def mock_df_functions():
     with patch('your_module.create_dim_counterparty') as mock_counterparty, \
          patch('your_module.create_dim_date') as mock_date, \
          patch('your_module.create_dim_location') as mock_location, \
@@ -72,7 +78,6 @@ def mock_df_creation_functions():
 
 
 class TestReadFromS3:
-    # @pytest.mark.skip(reason="The test is broken!")
     def test_returns_dictionary_with_correct_value_pair(
         self, s3_client, mock_extract_bucket
     ):
@@ -100,7 +105,6 @@ class TestReadFromS3:
         assert isinstance(result["Foods"], pd.DataFrame)
         assert result["Foods"].eq(expected_df, axis="columns").all(axis=None)
 
-    # @pytest.mark.skip(reason="The test is broken!")
     def test_returns_dictionary_of_dataframes_for_multiple_tables(
         self, s3_client, mock_extract_bucket
     ):
@@ -282,19 +286,22 @@ class TestProcessToParquetUploadS3:
         assert response == {"uploaded": [], "not_uploaded": []}
 
 class TestLambdaHandler:
-    def test_func_reads_from_extract_bucket(self, s3_client, mock_extract_bucket, mock_transform_bucket):
-        mock_db = MagicMock()
-        mock_connect.return_value = mock_db
+    def test_func_reads_from_extract_bucket(self, s3_client, mock_db_connection, mock_extract_bucket, mock_transform_bucket):
         mock_csv = "id,name\n1,Lauryn\n2,Hill"
         s3_client.put_object(Bucket='dummy_extract_buc',
                        Key="mock_table.csv",
                        Body=mock_csv)
 
-        with patch('src.transform_lambda.transform_lambda.read_from_s3_subfolder_to_df') as mock_read:
-            mock_read.return_value = {'sample_table': pd.read_csv(io.StringIO(mock_csv))}
+        with patch('src.transform_lambda.transform_lambda.read_from_s3_subfolder_to_df') as mock_read, \
+            patch('src.transform_lambda.transform_lambda.bucket_name', return_value="dummy_extract_buc") as mock_bucket_name:
             
+            mock_read.return_value = {'sample_mock_table': pd.read_csv(io.StringIO(mock_csv))}
+        
             lambda_handler({}, {})
             
             mock_read.assert_called_once()
+
+            args, kwargs = mock_read.call_args
+            assert kwargs.get('bucket') == mock_bucket_name.return_value
         
 
