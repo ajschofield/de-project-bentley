@@ -19,7 +19,6 @@ import requests
 # no test, same as fact_payment
 def create_fact_sales_order(dict_of_df):
     df_sales = dict_of_df["sales_order"].rename(columns={"staff_id": "sales_staff_id"})
-    df_sales.index.name = "sales_record_id"
 
     df_sales["created_date"] = df_sales["created_at"].astype("datetime64[ns]").dt.date
     df_sales["created_time"] = (
@@ -55,9 +54,11 @@ def create_fact_sales_order(dict_of_df):
             "agreed_delivery_location_id"
         ],
     ]
+    fact_sales.convert_dtypes()
+    fact_sales.index = pd.RangeIndex(1, len(fact_sales.index) + 1)
+    fact_sales.index.name = "sales_record_id"
     fact_sales.reset_index(inplace=True)
-    
-
+    fact_sales.dropna(inplace=True)
     return fact_sales
 
 
@@ -66,7 +67,6 @@ def create_fact_sales_order(dict_of_df):
 
 def create_fact_purchase_orders(dict_of_df):
     df_po = dict_of_df["purchase_order"]
-    df_po.index.name = "purchase_record_id"
     df_po["created_date"] = df_po["created_at"].astype("datetime64[ns]").dt.date
     df_po["created_time"] = (
         df_po["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
@@ -100,7 +100,11 @@ def create_fact_purchase_orders(dict_of_df):
         ]
 
     ]
+    fact_purchase_order.convert_dtypes()
+    fact_purchase_order.index = pd.RangeIndex(1, len(fact_purchase_order.index) + 1)
+    fact_purchase_order.index.name = "purchase_record_id"
     fact_purchase_order.reset_index(inplace=True)
+    fact_purchase_order.dropna(inplace=True)
     return fact_purchase_order
 
 
@@ -109,7 +113,6 @@ def create_fact_purchase_orders(dict_of_df):
 
 def create_fact_payment(dict_of_df):
     df_payment = dict_of_df["payment"]
-    df_payment.index.name = "payment_record_id"
     df_payment["created_date"] = (
         df_payment["created_at"].astype("datetime64[ns]").dt.date
     )
@@ -141,7 +144,12 @@ def create_fact_payment(dict_of_df):
         "payment_date"
         ]
     ]
+    fact_payment.convert_dtypes()
+    fact_payment.index = pd.RangeIndex(1, len(fact_payment.index) + 1)
+    fact_payment.index.name = "payment_record_id"
     fact_payment.reset_index(inplace=True)
+    fact_payment.dropna(inplace=True)
+    fact_payment = fact_payment.astype({'currency_id':'int','payment_id':'int'})
     return fact_payment
 
 
@@ -157,6 +165,7 @@ def create_dim_transaction(dict_of_df):
         "purchase_order_id"
         ]
     ]
+    #dim_transaction = dim_transaction.astype({"sales_order_id":"Int64","purchase_order_id":"Int64"})
     return dim_transaction
 
 

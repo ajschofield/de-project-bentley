@@ -161,18 +161,15 @@ def convert_parquet_files_to_dfs(bucket_name=None, client=None):
                     else:
                         continue
             immutables_l = list(set(immutables_l))
-            print(mutables_d,'mutables_d')
             latest_s3_keys = []
             for k,v in mutables_d.items():
 	            latest_s3_keys.append(dt.strftime(get_latest_timestamp(v), f"{k}/%Y/%m/%d/{k}_%H:%M:%S.parquet"))
-            print(latest_s3_keys,'latest')
-            print(immutables_l,'immutables_l')
-            for file_key in latest_s3_keys+immutables_l:
+            for file_key in immutables_l+latest_s3_keys:
                 try:
                     file_obj = client.get_object(Bucket=bucket_name, Key=file_key)
                     parquet_file = pq.ParquetFile(BytesIO(file_obj["Body"].read()))
                     df = parquet_file.read().to_pandas()
-                    df_without_nulls = df.dropna()
+                    df_without_nulls = df.dropna(how='all') #>> can't do 'any' (default) because we lose rows in dim_location
                     #print("df_without_nulls", df_without_nulls)
                     #print("type", type(df_without_nulls))
                     #print(df_without_nulls.columns)
@@ -202,12 +199,14 @@ def upload_dfs_to_database():
         # "dim_date.parquet",  # this needs to be mutable
         # "dim_location.parquet",
         # "dim_staff.parquet",
-        # "dim_design.parquet"
+        # "dim_design.parquet",
+        # 'dim_transaction.parquet' #This one was missing,
+        'dim_payment_type.parquet'
     ]
     mutable_df_dict = [
-        "dim_currency",
-        "fact_sales_order",
-        "fact_purchase_order",
+        # "dim_currency",
+        # "fact_sales_order",
+        # "fact_purchase_order",
         "fact_payment"
         
     ]
@@ -215,7 +214,9 @@ def upload_dfs_to_database():
         for file_name, df in dict_of_dfs.items():
             print(df.dtypes, "dtypes")
             print(df.head())
-            if file_name in immutable_df_dict:
+            print(file_name,"<<< FILE NAME")
+            print(immutable_df_dict,"<<<IMMUTABLE_DF_DICT")
+            if  file_name in immutable_df_dict: 
                 table_name = file_name.split(".")[0]
                 print(table_name, "<<<<<")
                 try:
@@ -248,7 +249,8 @@ def upload_dfs_to_database():
                     raise
             else:
                 upload_status["not_uploaded"].append(file_name)
-            logger.error(f"{file_name} does not correspond with table in database", exc_info=True)
+                logger.error(f"{file_name} does not correspond with table in database", exc_info=True)
+            print(upload_status)
     db_engine.dispose()
     return upload_status
 
