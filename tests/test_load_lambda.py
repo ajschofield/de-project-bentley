@@ -4,7 +4,14 @@ import boto3
 import botocore.exceptions
 import os
 import pytest
-from src.load_lambda import *
+from src.load_lambda import (
+    lambda_handler,
+    retrieve_secrets,
+    connect_to_db_and_return_engine,
+    convert_parquet_files_to_dfs,
+    get_transform_bucket,
+    upload_dfs_to_database,
+)
 import tempfile
 
 
