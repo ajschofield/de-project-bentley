@@ -114,27 +114,12 @@ def process_to_parquet_and_upload_to_s3(
         if table_name in existing_s3_files:
             status["not_uploaded"].append(table_name)
         else:
-
-
-<< << << < HEAD: src/transform_lambda/transform_lambda.py
             parquet_file = df.to_parquet(
                 f"{table_name}.parquet", engine="pyarrow"
             )  # or fastparquet
             # changed parquet_file variable to the file name
             client.upload_file(f"{table_name}.parquet",
                                bucket, f"{table_name}.parquet")
-== == == =
-            parquet_buffer = io.BytesIO()
-
-            # or engine="fastparquet"
-            df.to_parquet(parquet_buffer, engine="pyarrow")
-
-            parquet_buffer.seek(0)
-
-            client.upload_fileobj(parquet_buffer, bucket,
-                                  f"{table_name}.parquet")
-
->>>>>> > 3f24ec753902feecec4c17e2877e19853bde1bb2: src/transform_lambda.py
             status["uploaded"].append(table_name)
 
     for table_name, df in mutable_df_dict.items():
@@ -205,12 +190,10 @@ def bucket_name(bucket_prefix, client=boto3.client("s3")):
         bucket["Name"]
         for bucket in response["Buckets"]
         if bucket_prefix in bucket["Name"]
-    ]
-<<<<<<< HEAD:src/transform_lambda/transform_lambda.py
-=======
+        ]
+    
     if not bucket_filter:
         raise ValueError(f"No bucket found with prefix: {bucket_prefix}")
->>>>>>> 3f24ec753902feecec4c17e2877e19853bde1bb2:src/transform_lambda.py
 
     return bucket_filter[0]
 
