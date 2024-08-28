@@ -38,7 +38,8 @@ def mock_sm_client():
 
 
 class TestLambdaHandler:
-    def test_lambda_handler_returns_200_and_table_name_if_uploaded(self, mocker):
+    @staticmethod
+    def test_lambda_handler_returns_200_and_table_name_if_uploaded(mocker):
         mocker.patch(
             "src.load_lambda.upload_dfs_to_database",
             return_value={"uploaded": ["table_one", "table_two"], "not_uploaded": []},
@@ -48,7 +49,8 @@ class TestLambdaHandler:
         assert "table_one" in result["body"]
         assert "table_two" in result["body"]
 
-    def test_lambda_handler_returns_200_and_table_name_if_not_uploaded(self, mocker):
+    @staticmethod
+    def test_lambda_handler_returns_200_and_table_name_if_not_uploaded(mocker):
         mocker.patch(
             "src.load_lambda.upload_dfs_to_database",
             return_value={"uploaded": [], "not_uploaded": ["table_one"]},
@@ -57,7 +59,8 @@ class TestLambdaHandler:
         assert result["statusCode"] == 200
         assert "No dataframes were uploaded" in result["body"]
 
-    def test_lambda_handler_returns_error_if_both_lists_empty(self, mocker):
+    @staticmethod
+    def test_lambda_handler_returns_error_if_both_lists_empty(mocker):
         mocker.patch(
             "src.load_lambda.upload_dfs_to_database",
             return_value={"uploaded": [], "not_uploaded": []},
