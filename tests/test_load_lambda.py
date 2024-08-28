@@ -72,7 +72,8 @@ class TestLambdaHandler:
 
 
 class TestRetrieveSecrets:
-    def test_retrieve_secrets_returns_dictionary(self, mock_sm_client):
+    @staticmethod
+    def test_retrieve_secrets_returns_dictionary(mock_sm_client):
         secret = {
             "cohort_id": "test_cohort_id",
             "user": "test_user_id",
@@ -90,7 +91,8 @@ class TestRetrieveSecrets:
 
         assert isinstance(result, dict)
 
-    def test_retrieve_secrets_returns_correct_keys_and_values(self, mock_sm_client):
+    @staticmethod
+    def test_retrieve_secrets_returns_correct_keys_and_values(mock_sm_client):
         secret_name = "test_secret"
 
         result = json.loads(retrieve_secrets(mock_sm_client, secret_name))
@@ -98,7 +100,8 @@ class TestRetrieveSecrets:
         assert result["user"] == "test_user_id"
         assert result["password"] == "test_password"
 
-    def test_retrieve_secrets_returns_client_error_if_no_secret(self, mock_sm_client):
+    @staticmethod
+    def test_retrieve_secrets_returns_client_error_if_no_secret(mock_sm_client):
         secret_name = "another_test_secret"
 
         with pytest.raises(botocore.exceptions.ClientError) as error:
@@ -106,7 +109,8 @@ class TestRetrieveSecrets:
 
 
 class TestConnectToDBAndReturnEngine:
-    def test_returns_unsuccessful_connection_when_wrong_credentials(self):
+    @staticmethod
+    def test_returns_unsuccessful_connection_when_wrong_credentials():
         sm_secret = {
             "host": "host",
             "port": "port",
@@ -120,11 +124,13 @@ class TestConnectToDBAndReturnEngine:
 
 
 class TestGetTransformBucket:
-    def test_raises_value_error_if_no_buckets(self, mock_s3_client):
+    @staticmethod
+    def test_raises_value_error_if_no_buckets(mock_s3_client):
         with pytest.raises(ValueError, match="No transform bucket found"):
             get_transform_bucket(mock_s3_client)
 
-    def test_raises_value_error_if_no_transform_bucket(self, mock_s3_client):
+    @staticmethod
+    def test_raises_value_error_if_no_transform_bucket(mock_s3_client):
         mock_s3_client.create_bucket(
             Bucket="extract_bucket",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
@@ -132,7 +138,8 @@ class TestGetTransformBucket:
         with pytest.raises(ValueError, match="No transform bucket found"):
             get_transform_bucket(mock_s3_client)
 
-    def test_returns_transform_bucket_if_one_bucket(self, mock_s3_client):
+    @staticmethod
+    def test_returns_transform_bucket_if_one_bucket(mock_s3_client):
         mock_s3_client.create_bucket(
             Bucket="transform_bucket",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
@@ -140,7 +147,8 @@ class TestGetTransformBucket:
         result = get_transform_bucket(mock_s3_client)
         assert result == "transform_bucket"
 
-    def test_only_returns_transform_bucket_if_several_buckets(self, mock_s3_client):
+    @staticmethod
+    def test_only_returns_transform_bucket_if_several_buckets(mock_s3_client):
         mock_s3_client.create_bucket(
             Bucket="another_test_bucket",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
@@ -150,7 +158,8 @@ class TestGetTransformBucket:
 
 
 class TestConvertParquetToDfs:
-    def test_function_returns_empty_dictionary_if_no_files(self, mock_s3_client):
+    @staticmethod
+    def test_function_returns_empty_dictionary_if_no_files(mock_s3_client):
         mock_s3_client.create_bucket(
             Bucket="transform_bucket",
             CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
@@ -160,9 +169,8 @@ class TestConvertParquetToDfs:
         )
         assert result == {}
 
-    def test_function_returns_dictionary_with_file_key_and_dataframe(
-        self, mock_s3_client
-    ):
+    @staticmethod
+    def test_function_returns_dictionary_with_file_key_and_dataframe(mock_s3_client):
         with tempfile.TemporaryDirectory() as tmp:
             d = {
                 "test": ["Hello", "Bye"],
@@ -194,9 +202,8 @@ class TestConvertParquetToDfs:
 
 
 class TestUploadDfsToDatabase:
-    def test_function_returns_dictionary_with_uploaded_and_not_uploaded_keys(
-        self, mocker
-    ):
+    @staticmethod
+    def test_function_returns_dictionary_with_uploaded_and_not_uploaded_keys(mocker):
         mocker.patch(
             "src.load_lambda.convert_parquet_files_to_dfs",
             return_value={"dim_counterparty.parquet": pd.DataFrame()},
@@ -211,7 +218,8 @@ class TestUploadDfsToDatabase:
         assert "uploaded" in result
         assert "not_uploaded" in result
 
-    def test_function_returns_uploaded_and_not_uploaded_tables(self, mocker):
+    @staticmethod
+    def test_function_returns_uploaded_and_not_uploaded_tables(mocker):
         mocker.patch(
             "src.load_lambda.convert_parquet_files_to_dfs",
             return_value={"dim_counterparty.parquet": pd.DataFrame()},
