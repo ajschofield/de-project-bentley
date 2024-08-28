@@ -1,6 +1,4 @@
 import pandas as pd
-import pyarrow.parquet as pq
-from io import BytesIO
 from moto import mock_aws
 import boto3
 import botocore.exceptions
