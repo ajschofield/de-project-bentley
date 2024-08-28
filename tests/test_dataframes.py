@@ -54,7 +54,8 @@ class TestCreateDimStaff:
             "email_address": ["Hello", "Bye"],
             "department_id": ["Hello", "Bye"],
         }
-        test_df = {"staff": pd.DataFrame(data=d), "department": pd.DataFrame(data=d2)}
+        test_df = {"staff": pd.DataFrame(
+            data=d), "department": pd.DataFrame(data=d2)}
         result = create_dim_staff(test_df)
         assert isinstance(result, pd.DataFrame)
 
@@ -71,7 +72,10 @@ class TestCreateDimStaff:
             "email_address": ["Hello", "Bye"],
             "department_id": ["Hello", "Bye"],
         }
-        test_df = {"staff": pd.DataFrame(data=d), "department": pd.DataFrame(data=d2)}
+
+        test_df = {"staff": pd.DataFrame(
+            data=d), "department": pd.DataFrame(data=d2)}
+
         result = create_dim_staff(test_df)
         expected_d = {
             "staff_id": ["Hello", "Bye"],
@@ -88,7 +92,9 @@ class TestCreateDimStaff:
 
 class TestCreatePaymentType:
     def test_create_dim_payment_type_returns_correct_columns_and_values(self):
-        d = {"payment_type_id": ["Hello", "Bye"], "payment_type_name": ["Hello", "Bye"]}
+        d = {"payment_type_id": ["Hello", "Bye"],
+             "payment_type_name": ["Hello", "Bye"]}
+
         test_df = {"payment_type": pd.DataFrame(data=d)}
         result = create_dim_payment_type(test_df)
         expected_columns = ["payment_type_id", "payment_type_name"]
@@ -180,11 +186,14 @@ class TestCreateDimDate:
             index=[0],
         )
         df_two = pd.DataFrame(
-            data={"updated_date": dt(2020, 5, 17), "created_date": dt(2021, 9, 13)},
+            data={"updated_date": dt(2020, 5, 17),
+                  "created_date": dt(2021, 9, 13)},
             index=[0],
         )
         df_three = pd.DataFrame(
-            data={"updated_date": dt(2022, 5, 17), "created_date": dt(2023, 5, 13)},
+            data={"updated_date": dt(2022, 5, 17),
+                  "created_date": dt(2023, 5, 13)},
+
             index=[0],
         )
         expected_df = pd.DataFrame(
@@ -214,7 +223,8 @@ class TestCreateDimDate:
                     mock_fso.return_value = df_three
                     result = create_dim_date({"dum": 0})
                     result.reset_index(inplace=True, drop=True)
-                    assert result.eq(expected_df, axis="columns").all(axis=None)
+                    assert result.eq(
+                        expected_df, axis="columns").all(axis=None)
 
 
 class TestCreateDimLocation:
@@ -222,7 +232,9 @@ class TestCreateDimLocation:
         dict_df = {
             "address": pd.DataFrame(
                 data=[["some_time", "some_other_time", 1, "SE18 9QO"]],
-                columns=["created_at", "last_updated", "address_id", "postal_code"],
+                columns=["created_at", "last_updated",
+                         "address_id", "postal_code"],
+
             )
         }
         result = create_dim_location(dict_df)
@@ -244,3 +256,50 @@ class TestCreateDimTransaction:
         }
         result = create_dim_transaction(dict_df)
         assert list(result.columns) == ["transaction_id", "some_other_id"]
+
+
+class TestCreateFactPayment:
+    def test_returns_correct_columns_payment(self):
+        dict_df = {
+            "payment": pd.DataFrame(
+                data=[
+                    [
+                        dt.strptime(
+                            "2022-11-03 14:20:49.962846", "%Y-%m-%d %H:%M:%S.%f"
+                        ),
+                        dt.strptime(
+                            "2022-12-14 16:20:49.962194", "%Y-%m-%d %H:%M:%S.%f"
+                        ),
+                        1,
+                        "SE18 9QO",
+                        "2020-07-16",
+                    ]
+                ],
+                columns=[
+                    "created_at",
+                    "last_updated",
+                    "payment_id",
+                    "some_other_id",
+                    "payment_date",
+                ],
+            )
+        }
+        expected_cols = [
+            "payment_record_id",
+            "created_date",
+            "created_time",
+            "last_updated_date",
+            "last_updated_time",
+            "payment_date",
+            "payment_id",
+            "some_other_id",
+        ]
+        result = create_fact_payment(dict_df)
+        assert isinstance(result, pd.DataFrame)
+        for col in list(result.columns):
+            assert col in expected_cols
+        for col in expected_cols:
+
+
+if "_date" or "_time" in col:
+    assert result[col].dtype == "O"

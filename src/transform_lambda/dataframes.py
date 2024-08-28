@@ -16,85 +16,103 @@ import requests
 # dim_counterparty
 
 
+# no test, same as fact_payment
 def create_fact_sales_order(dict_of_df):
     df_sales = dict_of_df["sales_order"]
     df_sales.index.name = "sales_record_id"
-    df_sales["created_date"] = pd.to_datetime(df_sales["created_at"]).dt.date
-    df_sales["created_time"] = pd.to_datetime(df_sales["created_at"]).dt.time
-    df_sales["last_updated_date"] = pd.to_datetime(df_sales["last_updated"]).dt.date
-    df_sales["last_updated_time"] = pd.to_datetime(df_sales["last_updated"]).dt.time
-    fact_sales_order = df_sales.loc[
-        :,
-        [
-            "sales_record_id",
-            "sales_order_id",
-            "created_date",
-            "created_time",
-            "last_updated_date",
-            "last_updated_time",
-            "sales_staff_id",
-            "counterparty_id",
-            "units_sold",
-            "unit_price",
-            "currency_id",
-            "design_id",
-            "agreed_payment_date",
-            "agreed_delivery_date",
-            "agreed_delivery_location_id",
-        ],
-    ]
-    return fact_sales_order
+
+    df_sales["created_date"] = df_sales["created_at"].astype("datetime64[ns]").dt.date
+    df_sales["created_time"] = (
+        df_sales["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
+    df_sales["last_updated_date"] = (
+        df_sales["last_updated"].astype("datetime64[ns]").dt.date
+    )
+    df_sales["last_updated_time"] = (
+        df_sales["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
+    df_sales["agreed_delivery_date"] = pd.to_datetime(
+        df_sales["agreed_delivery_date"], format="%Y-%m-%d"
+    )
+    df_sales["agreed_payment_date"] = pd.to_datetime(
+        df_sales["agreed_payment_date"], format="%Y-%m-%d"
+    )
+    df_sales = df_sales.drop(labels=["created_at", "last_updated"], axis=1)
+
+    df_sales.reset_index(inplace=True)
+    return df_sales
+
+    df_sales["created_date"] = df_sales["created_at"].astype("datetime64[ns]").dt.date
+    df_sales["created_time"] = (
+        df_sales["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
+    df_sales["last_updated_date"] = (
+        df_sales["last_updated"].astype("datetime64[ns]").dt.date
+    )
+    df_sales["last_updated_time"] = (
+        df_sales["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
+    df_sales["agreed_delivery_date"] = pd.to_datetime(
+        df_sales["agreed_delivery_date"], format="%Y-%m-%d"
+    )
+    df_sales["agreed_payment_date"] = pd.to_datetime(
+        df_sales["agreed_payment_date"], format="%Y-%m-%d"
+    )
+    df_sales = df_sales.drop(labels=["created_at", "last_updated"], axis=1)
+    df_sales.reset_index(inplace=True)
+    return df_sales
 
 
-# fact_purchase_order from purchase_order
+# no test, same as fact_payment
 
 
 def create_fact_purchase_orders(dict_of_df):
     df_po = dict_of_df["purchase_order"]
     df_po.index.name = "purchase_record_id"
-    df_po["created_date"] = df_po["created_at"].date()
-    df_po["created_time"] = df_po["created_at"].dt.time
-    df_po["last_updated_date"] = df_po["last_updated_at"].date()
-    df_po["last_updated_time"] = df_po["last_updated_at"].dt.time
+    df_po["created_date"] = df_po["created_at"].astype("datetime64[ns]").dt.date
+    df_po["created_time"] = (
+        df_po["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
+    df_po["last_updated_date"] = df_po["last_updated"].astype("datetime64[ns]").dt.date
+    df_po["last_updated_time"] = (
+        df_po["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
     df_po["agreed_delivery_date"] = pd.to_datetime(
         df_po["agreed_delivery_date"], format="%Y-%m-%d"
     )
     df_po["agreed_payment_date"] = pd.to_datetime(
         df_po["agreed_payment_date"], format="%Y-%m-%d"
     )
-    df_po.drop(labels=["created_at", "last_updated_at"], axis=1, inplace=True)
+    df_po = df_po.drop(labels=["created_at", "last_updated"], axis=1)
+    df_po.reset_index(inplace=True)
     return df_po
+
+
+# test passed
 
 
 def create_fact_payment(dict_of_df):
     df_payment = dict_of_df["payment"]
     df_payment.index.name = "payment_record_id"
-    df_payment["created_date"] = df_payment["created_at"].date()
-    df_payment["created_time"] = df_payment["created_at"].time
-    df_payment["last_updated_date"] = df_payment["last_updated"].date()
-    df_payment["last_updated_time"] = df_payment["last_updated"].time
+    df_payment["created_date"] = (
+        df_payment["created_at"].astype("datetime64[ns]").dt.date
+    )
+    df_payment["created_time"] = (
+        df_payment["created_at"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
+    df_payment["last_updated_date"] = (
+        df_payment["last_updated"].astype("datetime64[ns]").dt.date
+    )
+    df_payment["last_updated_time"] = (
+        df_payment["last_updated"].astype("datetime64[ns]").dt.floor("s").dt.time
+    )
     df_payment["payment_date"] = pd.to_datetime(
         df_payment["payment_date"], format="%Y-%m-%d"
     )
-    fact_payment = df_payment.loc[
-        :,
-        [
-            "payment_record_id",
-            "payment_id",
-            "created_date",
-            "created_time",
-            "last_updated_date",
-            "last_updated_time",
-            "transaction_id",
-            "counterparty_id",
-            "payment_amount",
-            "currency_id",
-            "payment_type_id",
-            "paid",
-            "payment_date",
-        ],
-    ]
-    return fact_payment
+    df_payment = df_payment.drop(labels=["created_at", "last_updated"], axis=1)
+
+    df_payment.reset_index(inplace=True)
+    return df_payment
 
 
 # test passed
@@ -108,6 +126,8 @@ def create_dim_transaction(dict_of_df):
 
 
 # test passed
+
+
 def create_dim_location(dict_of_df):
     df_loc = (
         dict_of_df["address"]
@@ -118,18 +138,24 @@ def create_dim_location(dict_of_df):
 
 
 def create_dim_counterparty(dict_of_df):
-    df_prefixed_address = dict_of_df["address"].add_prefix(
-        "counterparty_legal_", axis=1
+    df_prefixed_address = (
+        dict_of_df["address"]
+        .drop(labels=["created_at", "last_updated"], axis=1)
+        .add_prefix("counterparty_legal_", axis=1)
     )
     df_cp = pd.merge(
         dict_of_df["counterparty"],
         df_prefixed_address,
         left_on="legal_address_id",
         right_on="counterparty_legal_address_id",
-        how="outer",
+        how="inner",
     )
     df_cp.drop(
-        columns=["legal_address_id", "counterparty_legal_address_id"], inplace=True
+        columns=[
+            "legal_address_id",
+            "counterparty_legal_address_id",
+        ],
+        inplace=True,
     )
     return df_cp
 
@@ -143,11 +169,11 @@ def create_dim_date(dict_of_df):
         create_fact_purchase_orders(dict_of_df),
         create_fact_sales_order(dict_of_df),
     ]
-    date_col_names = [
-        col_name for col_name in list(fact_dfs[0].columns) if "date" in col_name
-    ]
     list_of_date_columns = []
     for df in fact_dfs:
+        date_col_names = [
+            col_name for col_name in list(df.columns) if "_date" in col_name
+        ]
         for col in date_col_names:
             list_of_date_columns.append(df[col])
     sr_date = pd.array(pd.concat(list_of_date_columns), dtype="datetime64[ns]")
@@ -164,6 +190,8 @@ def create_dim_date(dict_of_df):
 
 
 # tests passed
+
+
 def scrape_currency_names():
     response = requests.get("https://www.xe.com/currency/").content
     soup = BeautifulSoup(response, "html.parser")
