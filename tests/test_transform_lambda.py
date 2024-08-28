@@ -6,6 +6,7 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 import numpy as np
+from datetime import datetime
 
 # /home/lianmei/northcoders/projects/de-project-bentley/src/transform_lambda/transform_lambda.py
 # import caplog
@@ -184,10 +185,9 @@ class TestProcessToParquetUploadS3:
             ['car_data'], mock_dim_dict, {}, "dummy_transform_buc", s3_client
         )
 
-        # keys = s3_client.get_object(
-        #     Bucket='dummy_transform_buc',
-        #     Key='car_data.parquet'
-        # )
+        object_list = s3_client.list_objects_v2(Bucket='dummy_transform_buc')
+        s3_uploaded_files = [obj['Key'] for obj in object_list.get('Contents', [])]
+        assert 'car_data.parquet' not in s3_uploaded_files
         assert response == {"uploaded": [], "not_uploaded": ['car_data']}
 
     def test_func_uploads_data_if_doesnt_exist(self, mock_transform_bucket, s3_client):
@@ -207,10 +207,14 @@ class TestProcessToParquetUploadS3:
         response = process_to_parquet_and_upload_to_s3(
             ['car_data'], mock_dim_dict, {}, "dummy_transform_buc", s3_client
         )
+        object_list = s3_client.list_objects_v2(Bucket='dummy_transform_buc')
+        s3_uploaded_files = [obj['Key'] for obj in object_list.get('Contents', [])]
+        print(s3_uploaded_files, '<<<<<< the FILES IN DUMMY TRASN BUC')
 
+        assert "flower_data.parquet" in s3_uploaded_files
         assert response == {"uploaded": ['flower_data'], "not_uploaded": []}
         
-    def test_func_uploads_several_files_and_checks_for_parquet_files(self, mock_transform_bucket, s3_client):
+    def test_func_uploads_mutable_and_immutable_files(self, mock_transform_bucket, s3_client):
         expected_vegetable_df = pd.DataFrame(
             np.array(
                 [
@@ -234,18 +238,20 @@ class TestProcessToParquetUploadS3:
         mock_dim_dict = {"vegetable_data": expected_vegetable_df}
         mock_fact_dict = {"meat_data": expected_meat_df}
 
+        ##mocked an existing file 
         expected_vegetable_df.to_parquet("vegetable_data.parquet", engine="pyarrow")
         s3_client.upload_file("vegetable_data.parquet", 'dummy_transform_buc', "vegetable_data.parquet")
 
-        print(f"Type of mock_transform_bucket: {type(mock_transform_bucket)}") 
-        print(f"Type of mock_dim_dict: {type(mock_dim_dict)}")
-        print(f"Type of items in mock_dim_dict: {[type(i) for i in mock_dim_dict.values()]}")
-        print(f"Type of s3_client: {type(s3_client)}")
-
+    
         response = process_to_parquet_and_upload_to_s3(
             ['vegetable_data'], mock_dim_dict, mock_fact_dict, "dummy_transform_buc", s3_client
         )
+        object_list = s3_client.list_objects_v2(Bucket='dummy_transform_buc')
+        s3_uploaded_files = [obj['Key'] for obj in object_list.get('Contents', [])]
 
+        time_prefix = datetime.strftime(datetime.today(), "meat_data/%Y/%m/%d/meat_data_%H:%M:%S.parquet")
+        assert any(key.startswith("meat_data/") and key.endswith(".parquet") for key in s3_uploaded_files)
+        assert 'vegetable_data.parquet' in s3_uploaded_files
         assert response == {"uploaded": ['meat_data'], "not_uploaded": ['vegetable_data']}
 
     def test_func_handles_empty_dicts(self, mock_transform_bucket, s3_client):
@@ -255,4 +261,6 @@ class TestProcessToParquetUploadS3:
 
         assert response == {"uploaded": [], "not_uploaded": []}
 
-class TestLambdaHandler
+class TestLambdaHandler:
+    def test_(self):
+        pass
