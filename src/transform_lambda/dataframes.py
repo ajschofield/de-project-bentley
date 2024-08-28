@@ -18,7 +18,7 @@ import requests
 
 # no test, same as fact_payment
 def create_fact_sales_order(dict_of_df):
-    df_sales = dict_of_df["sales_order"]
+    df_sales = dict_of_df["sales_order"].rename(columns={"staff_id": "sales_staff_id"})
     df_sales.index.name = "sales_record_id"
 
     df_sales["created_date"] = df_sales["created_at"].astype("datetime64[ns]").dt.date
@@ -44,7 +44,7 @@ def create_fact_sales_order(dict_of_df):
             "created_time",
             "last_updated_date",
             "last_updated_time",
-            "staff_id",
+            "sales_staff_id",
             "counterparty_id",
             "units_sold",
             "unit_price",
@@ -55,7 +55,7 @@ def create_fact_sales_order(dict_of_df):
             "agreed_delivery_location_id"
         ],
     ]
-    fact_sales.rename(columns={"staff_id": "sales_staff_id"}).reset_index(inplace=True)
+    fact_sales.reset_index(inplace=True)
     
 
     return fact_sales
@@ -253,6 +253,8 @@ def create_dim_currency(dict_of_df, names=scrape_currency_names()):
         df_cur, names, left_on="currency_code", right_on="currency_code", how="left"
     )
     dim_currency.drop_duplicates(inplace=True)
+    dim_currency.astype({"currency_name": "string", "currency_code": "string"})
+    print(dim_currency.dtypes, "<<<<<<<<<Dtype")
     return dim_currency
 
 
