@@ -86,8 +86,8 @@ resource "aws_lambda_function" "extract_lambda" {
 
 data "archive_file" "transform_lambda_zip" {
   type        = "zip"
-  source_dir  = "${path.module}../src/transform_lambda" 
-  output_path = "${path.module}../transform_lambda.zip"
+  source_dir  = "${path.module}/../src/transform_lambda"
+  output_path = "${path.module}/../transform_lambda.zip"
 }
 
 resource "aws_s3_object" "transform_lambda_code" {
