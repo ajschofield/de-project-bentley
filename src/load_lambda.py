@@ -57,7 +57,6 @@ def retrieve_secrets(client=None, secret_name=None):
 
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-        print(get_secret_value_response)
     except ClientError as e:
         logger.error(f"Failed to retrieve secret {secret_name}: {str(e)}", exc_info=True)
         raise e
@@ -195,18 +194,18 @@ def upload_dfs_to_database():
     dict_of_dfs = convert_parquet_files_to_dfs()
     db_engine = connect_to_db_and_return_engine()
     immutable_df_dict = [
-        # #"dim_counterparty.parquet",
-        # "dim_date.parquet",  # this needs to be mutable
-        # "dim_location.parquet",
-        # "dim_staff.parquet",
-        # "dim_design.parquet",
-        # 'dim_transaction.parquet' #This one was missing,
+        "dim_counterparty.parquet",
+        "dim_date.parquet",  # this needs to be mutable
+        "dim_location.parquet",
+        "dim_staff.parquet",
+        "dim_design.parquet",
+        'dim_transaction.parquet', #This one was missing,
         'dim_payment_type.parquet'
     ]
     mutable_df_dict = [
-        # "dim_currency",
-        # "fact_sales_order",
-        # "fact_purchase_order",
+        "dim_currency",
+        "fact_sales_order",
+        "fact_purchase_order",
         "fact_payment"
         
     ]
