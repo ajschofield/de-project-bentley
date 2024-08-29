@@ -99,24 +99,35 @@ def connect_to_database() -> Connection:
         raise DBConnectionException("Failed to connect to database")
 
 
-def extract_bucket(client=boto3.client("s3")):
+def extract_bucket(client=None):
+    if client is None:
+        client = boto3.client("s3")
     response = client.list_buckets()
     extract_bucket_filter = [
         bucket["Name"] for bucket in response["Buckets"] if "extract" in bucket["Name"]
     ]
 
+    if not extract_bucket_filter:
+        raise ValueError("No extract_bucket found")
+
     return extract_bucket_filter[0]
 
 
-def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client("s3")):
+def list_existing_s3_files(bucket_name=None, client=None):
     """Creates a dictionary and populates it with the
     results of listing the contents of the s3 bucket, then
     returns the populated dictionary
     """
+
     logging.info("Listing existing S3 files")
     existing_files = {}
 
     try:
+        if client is None:
+            client = boto3.client("s3")
+        if bucket_name is None:
+            bucket_name = extract_bucket(client)
+
         response = client.list_objects_v2(Bucket=bucket_name)
 
         if "Contents" in response:
@@ -132,8 +143,11 @@ def list_existing_s3_files(bucket_name=extract_bucket(), client=boto3.client("s3
             logger.error("The bucket is empty")
             return None
 
-    except ClientError as e:
-        logger.error(f"Error listing S3 objects: {e}")
+    except ValueError as ve:
+        logger.error(f"Error listing S3 objects: {ve}")
+        raise
+    except ClientError as ce:
+        logger.error(f"Error listing S3 objects: {ce}")
 
     return existing_files
 
