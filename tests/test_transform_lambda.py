@@ -1,4 +1,4 @@
-from src.transform_lambda import (
+from src.transform_lambda.transform_lambda import (
     read_from_s3_subfolder_to_df,
     list_existing_s3_files,
     bucket_name,

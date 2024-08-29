@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from dataframes import *
+from src.transform_lambda.dataframes import *
 from botocore.exceptions import ClientError
 from pg8000.native import Connection, InterfaceError
 from datetime import datetime
@@ -65,6 +65,8 @@ def lambda_handler(event, context):
             "dim_location": create_dim_location(dict_of_df),
             "dim_staff": create_dim_staff(dict_of_df),
             "dim_design": create_dim_design(dict_of_df),
+            "dim_transaction": create_dim_transaction(dict_of_df),
+            "dim_payment_type": create_dim_payment_type(dict_of_df),
         }
 
         mutable_df_dict = {
@@ -73,7 +75,8 @@ def lambda_handler(event, context):
             "fact_payment": create_fact_payment(dict_of_df),
             "dim_currency": create_dim_currency(dict_of_df),
         }
-
+        print(immutable_df_dict.values())
+        print(mutable_df_dict.values())
         status = process_to_parquet_and_upload_to_s3(
             existing_s3_files, immutable_df_dict, mutable_df_dict, bucket
         )

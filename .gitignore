@@ -15,3 +15,7 @@ __pycache__/
 # OS-Related Files
 .DS_Store
 venv
+
+#files
+/dim_*
+/fact_*
