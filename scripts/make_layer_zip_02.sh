@@ -2,8 +2,8 @@
 # lambda functions
 
 cd "$(dirname "$0")/.."
-mkdir -p python/lib/python3.11/site-packages
-pip3 install --upgrade -r requirements.txt -t python/lib/python3.11/site-packages
-rm layer.zip
-zip -r layer.zip python
-rm -r python/
+mkdir -p python_02/lib/python3.11/site-packages
+pip3 install --upgrade -r requirements_02.txt -t python_02/lib/python3.11/site-packages
+rm layer_02.zip
+zip -r layer_02.zip python_02
+rm -r python_02/
