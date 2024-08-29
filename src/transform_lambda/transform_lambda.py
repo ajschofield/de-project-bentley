@@ -42,7 +42,7 @@ TABLES = [
     "department",
     "currency",
     "design",
-    "payment_type"
+    "payment_type",
 ]
 
 
@@ -66,14 +66,14 @@ def lambda_handler(event, context):
             "dim_staff": create_dim_staff(dict_of_df),
             "dim_design": create_dim_design(dict_of_df),
             "dim_transaction": create_dim_transaction(dict_of_df),
-            "dim_payment_type": create_dim_payment_type(dict_of_df)
+            "dim_payment_type": create_dim_payment_type(dict_of_df),
         }
 
         mutable_df_dict = {
             "fact_sales_order": create_fact_sales_order(dict_of_df),
             "fact_purchase_order": create_fact_purchase_orders(dict_of_df),
             "fact_payment": create_fact_payment(dict_of_df),
-            "dim_currency": create_dim_currency(dict_of_df)
+            "dim_currency": create_dim_currency(dict_of_df),
         }
         print(immutable_df_dict.values())
         print(mutable_df_dict.values())

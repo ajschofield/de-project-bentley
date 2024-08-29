@@ -36,7 +36,8 @@ def create_fact_sales_order(dict_of_df):
     df_sales["agreed_payment_date"] = pd.to_datetime(
         df_sales["agreed_payment_date"], format="%Y-%m-%d"
     )
-    fact_sales = df_sales.loc[:,
+    fact_sales = df_sales.loc[
+        :,
         [
             "sales_order_id",
             "created_date",
@@ -51,7 +52,7 @@ def create_fact_sales_order(dict_of_df):
             "design_id",
             "agreed_payment_date",
             "agreed_delivery_date",
-            "agreed_delivery_location_id"
+            "agreed_delivery_location_id",
         ],
     ]
     fact_sales.convert_dtypes()
@@ -81,24 +82,24 @@ def create_fact_purchase_orders(dict_of_df):
     df_po["agreed_payment_date"] = pd.to_datetime(
         df_po["agreed_payment_date"], format="%Y-%m-%d"
     )
-    fact_purchase_order = df_po.loc[:,
-        [                           
-        "purchase_order_id",
-        "created_date",
-        "created_time",
-        "last_updated_date",
-        "last_updated_time",
-        "staff_id",
-        "counterparty_id",
-        "item_code",
-        "item_quantity",
-        "item_unit_price",
-        "currency_id",
-        "agreed_delivery_date",
-        "agreed_payment_date",
-        "agreed_delivery_location_id"
-        ]
-
+    fact_purchase_order = df_po.loc[
+        :,
+        [
+            "purchase_order_id",
+            "created_date",
+            "created_time",
+            "last_updated_date",
+            "last_updated_time",
+            "staff_id",
+            "counterparty_id",
+            "item_code",
+            "item_quantity",
+            "item_unit_price",
+            "currency_id",
+            "agreed_delivery_date",
+            "agreed_payment_date",
+            "agreed_delivery_location_id",
+        ],
     ]
     fact_purchase_order.convert_dtypes()
     fact_purchase_order.index = pd.RangeIndex(1, len(fact_purchase_order.index) + 1)
@@ -128,28 +129,29 @@ def create_fact_payment(dict_of_df):
     df_payment["payment_date"] = pd.to_datetime(
         df_payment["payment_date"], format="%Y-%m-%d"
     )
-    fact_payment = df_payment.loc[:,
+    fact_payment = df_payment.loc[
+        :,
         [
-        "payment_id",
-        "created_date",
-        "created_time",
-        "last_updated_date",
-        "last_updated_time",
-        "transaction_id",
-        "counterparty_id",
-        "payment_amount",
-        "currency_id",
-        "payment_type_id",
-        "paid",
-        "payment_date"
-        ]
+            "payment_id",
+            "created_date",
+            "created_time",
+            "last_updated_date",
+            "last_updated_time",
+            "transaction_id",
+            "counterparty_id",
+            "payment_amount",
+            "currency_id",
+            "payment_type_id",
+            "paid",
+            "payment_date",
+        ],
     ]
     fact_payment.convert_dtypes()
     fact_payment.index = pd.RangeIndex(1, len(fact_payment.index) + 1)
     fact_payment.index.name = "payment_record_id"
     fact_payment.reset_index(inplace=True)
     fact_payment.dropna(inplace=True)
-    fact_payment = fact_payment.astype({'currency_id':'int','payment_id':'int'})
+    fact_payment = fact_payment.astype({"currency_id": "int", "payment_id": "int"})
     return fact_payment
 
 
@@ -157,15 +159,10 @@ def create_fact_payment(dict_of_df):
 
 
 def create_dim_transaction(dict_of_df):
-    dim_transaction = dict_of_df["transaction"].loc[:,
-        [
-        "transaction_id",
-        "transaction_type",
-        "sales_order_id",
-        "purchase_order_id"
-        ]
+    dim_transaction = dict_of_df["transaction"].loc[
+        :, ["transaction_id", "transaction_type", "sales_order_id", "purchase_order_id"]
     ]
-    #dim_transaction = dim_transaction.astype({"sales_order_id":"Int64","purchase_order_id":"Int64"})
+    # dim_transaction = dim_transaction.astype({"sales_order_id":"Int64","purchase_order_id":"Int64"})
     return dim_transaction
 
 
@@ -174,7 +171,8 @@ def create_dim_transaction(dict_of_df):
 
 def create_dim_location(dict_of_df):
     dim_location = (
-        dict_of_df["address"].drop(labels=["created_at", "last_updated"], axis=1)
+        dict_of_df["address"]
+        .drop(labels=["created_at", "last_updated"], axis=1)
         .rename(columns={"address_id": "location_id"})
     )
     return dim_location
@@ -193,7 +191,7 @@ def create_dim_counterparty(dict_of_df):
         left_on="legal_address_id",
         right_on="counterparty_legal_address_id",
         how="inner",
-    )#.dropna(inplace=True)
+    )  # .dropna(inplace=True)
     dim_counterparty = df_cp.drop(
         labels=[
             "legal_address_id",
@@ -201,8 +199,9 @@ def create_dim_counterparty(dict_of_df):
             "created_at",
             "last_updated",
             "commercial_contact",
-            "delivery_contact"
-        ], axis=1
+            "delivery_contact",
+        ],
+        axis=1,
     )
     return dim_counterparty
 
@@ -272,12 +271,7 @@ def create_dim_currency(dict_of_df, names=scrape_currency_names()):
 
 def create_dim_payment_type(dict_of_df):
     df_payment_type = dict_of_df["payment_type"]
-    dim_payment_type = df_payment_type.loc[:, 
-        [
-            "payment_type_id", 
-            "payment_type_name"
-        ]
-    ]
+    dim_payment_type = df_payment_type.loc[:, ["payment_type_id", "payment_type_name"]]
     return dim_payment_type
 
 
@@ -286,13 +280,8 @@ def create_dim_payment_type(dict_of_df):
 
 def create_dim_design(dict_of_df):
     df_design = dict_of_df["design"]
-    dim_design = df_design.loc[:, 
-        [
-            "design_id", 
-            "design_name", 
-            "file_name", 
-            "file_location"
-        ]
+    dim_design = df_design.loc[
+        :, ["design_id", "design_name", "file_name", "file_location"]
     ]
     return dim_design
 
@@ -304,14 +293,15 @@ def create_dim_staff(dict_of_df):
     staff_department = pd.merge(
         dict_of_df["staff"], dict_of_df["department"], on="department_id", how="left"
     )
-    dim_staff = staff_department.loc[:,
+    dim_staff = staff_department.loc[
+        :,
         [
             "staff_id",
             "first_name",
             "last_name",
             "department_name",
             "location",
-            "email_address"
-        ]
+            "email_address",
+        ],
     ]
     return dim_staff
