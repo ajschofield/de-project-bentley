@@ -296,7 +296,7 @@ class TestLambdaHandler:
             patch('src.transform_lambda.transform_lambda.bucket_name', return_value="dummy_extract_buc") as mock_bucket_name:
             
             mock_read.return_value = {'sample_mock_table': pd.read_csv(io.StringIO(mock_csv))}
-        
+
             lambda_handler({}, {})
             
             mock_read.assert_called_once()
