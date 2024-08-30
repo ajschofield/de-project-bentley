@@ -36,16 +36,10 @@ can:
 We aim for the project to have certain features. Some are more prioritised than
 others.
 
-- [ ] Automated data ingestion from `totesys` db
-- [ ] Data storage for ingested and processed data in S3 buckets
-- [ ] Data transformation for data warehouse schema
-- [ ] Automated data loading into the data warehouse schema
-- [ ] Logging and monitoring with CloudWatch
-- [ ] Notifications for errors and successful runs (e.g. successful ingestion)
-- [ ] Visualisation of warehouse data
-
-# Test Coverage
-TBA
-
-# Contributors
-TBA
+- Automated data ingestion from `totesys` db
+- Data storage for ingested and processed data in S3 buckets
+- Data transformation for data warehouse schema
+- Automated data loading into the data warehouse schema
+- Logging and monitoring with CloudWatch
+- Notifications for errors and successful runs (e.g. successful ingestion)
+- Visualisation of warehouse data
