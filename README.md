@@ -1,6 +1,6 @@
 > [!NOTE]
 > Considering that myself and my team have graduated from the Northcoders Data Engineering course, this project will be archived and made read-only.
-> I will be continuing this project solo, which you can find [here](https://github.com/ajschofield/NC-Bentley-ETL), where I will be adding more features
+> I will be continuing this project solo, which you can find [here](https://github.com/ajschofield/ETL-Project), where I will be adding more features
 > over time.
 
 # ToteSys - Data Engineering Project
