@@ -1,0 +1,9 @@
+pandas
+pyarrow
+SQLAlchemy
+auto_mix_prep
+beautifulsoup4
+boto3
+botocore
+pg8000
+Requests
