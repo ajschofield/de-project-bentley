@@ -86,7 +86,7 @@ resource "aws_s3_bucket_notification" "extract_bucket_notification" {
 resource "aws_lambda_permission" "allow_s3_transform_bucket" {
   statement_id  = "AllowS3InvokeLambdaTransform${random_string.s3_transform_suffix.result}"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.transform_lambda.function_name
+  function_name = aws_lambda_function.load_lambda.function_name
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.transform_bucket.arn
 
@@ -102,7 +102,7 @@ resource "aws_s3_bucket_notification" "transform_bucket_notification" {
 
   lambda_function {
     events              = ["s3:ObjectCreated:*"]
-    lambda_function_arn = aws_lambda_function.transform_lambda.arn
+    lambda_function_arn = aws_lambda_function.load_lambda.arn
   }
 
   depends_on = [aws_lambda_permission.allow_s3_transform_bucket]
