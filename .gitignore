@@ -11,11 +11,10 @@
 *.zip
 log*
 __pycache__/
+*.parquet
+/dim_*
+/fact_*
 
 # OS-Related Files
 .DS_Store
 venv
-
-#files
-/dim_*
-/fact_*
